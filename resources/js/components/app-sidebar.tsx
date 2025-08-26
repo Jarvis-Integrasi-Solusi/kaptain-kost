@@ -1,32 +1,210 @@
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
-import { LayoutGrid } from 'lucide-react';
+import { type NavGroup, type PageProps } from '@/types';
+import { Link, usePage } from '@inertiajs/react';
+import {
+    AirVent,
+    BarChart3,
+    BedDouble,
+    BookUser,
+    Building,
+    CalendarRange,
+    ChartBarStacked,
+    ClipboardCopy,
+    CreditCard,
+    DoorOpen,
+    FileText,
+    LayoutGrid,
+    ShieldCheck,
+    UserCog,
+    Wrench,
+} from 'lucide-react';
 import AppLogo from './app-logo';
 
-const mainNavItems: NavItem[] = [
+// Manager Navigation
+const managerNavGroups: NavGroup[] = [
     {
-        title: 'Dashboard',
-        href: '/dashboard',
-        icon: LayoutGrid,
+        title: 'Overview',
+        items: [
+            {
+                title: 'Dashboard',
+                href: '/manager/dashboard',
+                icon: LayoutGrid,
+            },
+            {
+                title: 'Booking Chart',
+                href: '/manager/booking-chart',
+                icon: BookUser,
+            },
+        ],
     },
     {
-        title: '',
-        href: '/dashboard',
-        icon: LayoutGrid,
+        title: 'Users ',
+        items: [
+            {
+                title: 'Managers',
+                href: '/manager/users/managers',
+                icon: UserCog,
+            },
+            {
+                title: 'Operators',
+                href: '/manager/users/operators',
+                icon: Wrench,
+            },
+            {
+                title: 'Tenants',
+                href: '/manager/users/tenants',
+                icon: Building,
+            },
+        ],
+    },
+    {
+        title: 'Rooms',
+        items: [
+            {
+                title: 'Room List',
+                href: '/manager/rooms',
+                icon: BedDouble,
+            },
+            {
+                title: 'Category',
+                href: '/manager/rooms/category',
+                icon: ChartBarStacked,
+            },
+            {
+                title: 'Facility',
+                href: '/manager/rooms/facility',
+                icon: AirVent,
+            },
+            {
+                title: 'Occupancy Status',
+                href: '/manager/rooms/occupancy',
+                icon: DoorOpen,
+            },
+            {
+                title: 'Condition Status',
+                href: '/manager/rooms/condition',
+                icon: ShieldCheck,
+            },
+        ],
+    },
+    {
+        title: 'Rental',
+        items: [
+            {
+                title: 'Rental Record',
+                href: '/manager/rental',
+                icon: ClipboardCopy,
+            },
+            {
+                title: 'Payment Type',
+                href: '/manager/rental/payment-type',
+                icon: CreditCard,
+            },
+            {
+                title: 'Rental Period',
+                href: '/manager/rental/period',
+                icon: CalendarRange,
+            },
+        ],
+    },
+];
+
+// Operator Navigation
+const operatorNavGroups: NavGroup[] = [
+    {
+        title: 'Overview',
+        items: [
+            {
+                title: 'Dashboard',
+                href: '/operator/dashboard',
+                icon: LayoutGrid,
+            },
+        ],
+    },
+    {
+        title: 'Operations',
+        items: [
+            {
+                title: 'Daily Tasks',
+                href: '/operator/operations',
+                icon: FileText,
+            },
+            {
+                title: 'Maintenance',
+                href: '/operator/maintenance',
+                icon: Wrench,
+            },
+        ],
+    },
+    {
+        title: 'Reports',
+        items: [
+            {
+                title: 'Operation Reports',
+                href: '/operator/reports',
+                icon: BarChart3,
+            },
+        ],
+    },
+];
+
+// Tenant Navigation
+const tenantNavGroups: NavGroup[] = [
+    {
+        title: 'Overview',
+        items: [
+            {
+                title: 'Dashboard',
+                href: '/tenant/dashboard',
+                icon: LayoutGrid,
+            },
+        ],
     },
 ];
 
 export function AppSidebar() {
+    const { auth } = usePage<PageProps>().props;
+    const user = auth.user;
+
+    const getNavGroups = (): NavGroup[] => {
+        if (!user) return [];
+
+        switch (user.role) {
+            case 'manager':
+                return managerNavGroups;
+            case 'operator':
+                return operatorNavGroups;
+            case 'tenant':
+                return tenantNavGroups;
+            default:
+                return tenantNavGroups;
+        }
+    };
+
+    const getDashboardRoute = (): string => {
+        if (!user) return '/dashboard';
+
+        switch (user.role) {
+            case 'manager':
+                return '/manager/dashboard';
+            case 'operator':
+                return '/operator/dashboard';
+            case 'tenant':
+                return '/tenant/dashboard';
+            default:
+                return '/dashboard';
+        }
+    };
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href="/dashboard" prefetch>
+                            <Link href={getDashboardRoute()} prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>
@@ -35,7 +213,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain groups={getNavGroups()} />
             </SidebarContent>
 
             <SidebarFooter>
