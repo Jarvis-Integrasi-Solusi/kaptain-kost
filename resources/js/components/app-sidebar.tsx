@@ -69,7 +69,7 @@ const managerNavGroups: NavGroup[] = [
             },
             {
                 title: 'Category',
-                href: '/manager/rooms/category',
+                href: '/manager/room-category',
                 icon: ChartBarStacked,
             },
             {

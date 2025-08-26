@@ -27,6 +27,7 @@ class User extends Authenticatable
         'guardian_name',
         'guardian_telephone',
         'image',
+        'company_id',
     ];
 
     // Role Check Helper Function

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Manager\Room\CategoryController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -19,7 +20,14 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified', 'role:manager'])->prefix('manager')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'manager'])->name('manager.dashboard');
 
-    // Route::get('/booking-chart', [BookingChartController::class, 'index'])->name('manager.booking-chart');
+    // Room management
+    Route::get('/room-category', [CategoryController::class, 'index'])->name('manager.room-category.index');
+    Route::post('/room-category', [CategoryController::class, 'store'])->name('manager.room-category.store');
+    Route::get('/room-category/{id}', [CategoryController::class, 'show'])->name('manager.room-category.show');
+    Route::put('/room-category/{id}', [CategoryController::class, 'update'])->name('manager.room-category.update');
+    Route::delete('/room-category/{id}', [CategoryController::class, 'destroy'])->name('manager.room-category.destroy');
+    
+
 });
 
 // Operator routes

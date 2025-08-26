@@ -5,7 +5,12 @@ export interface User {
     id: number;
     name: string;
     email: string;
+    image?: string;
     email_verified_at?: string;
+    company?: {
+        id: number;
+        name: string;
+    };
     role: 'manager' | 'operator' | 'tenant';
 }
 
@@ -16,7 +21,6 @@ export interface NavItem {
     items?: NavItem[];
     isActive?: boolean;
 }
-
 
 export interface NavGroup {
     title: string;
@@ -30,7 +34,6 @@ export interface SharedData {
     sidebarOpen: boolean;
     [key: string]: unknown;
 }
-
 
 export interface BreadcrumbItem {
     title: string;
