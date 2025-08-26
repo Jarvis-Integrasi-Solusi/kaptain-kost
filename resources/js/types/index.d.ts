@@ -23,6 +23,14 @@ export interface NavGroup {
     items: NavItem[];
 }
 
+export interface SharedData {
+    name: string;
+    quote: { message: string; author: string };
+    auth: Auth;
+    sidebarOpen: boolean;
+    [key: string]: unknown;
+}
+
 
 export interface BreadcrumbItem {
     title: string;
