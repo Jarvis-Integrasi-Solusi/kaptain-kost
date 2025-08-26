@@ -2,6 +2,10 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Manager\Room\CategoryController;
+use App\Http\Controllers\Manager\Room\ConditionStatusController;
+use App\Http\Controllers\Manager\Room\FacilityController;
+use App\Http\Controllers\Manager\Room\OccupancyStatusController;
+use App\Http\Controllers\Manager\Room\RoomController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -21,16 +25,28 @@ Route::middleware(['auth', 'verified', 'role:manager'])->prefix('manager')->grou
     Route::get('/dashboard', [DashboardController::class, 'manager'])->name('manager.dashboard');
 
     // Room management
-    Route::get('/room-category', [CategoryController::class, 'index'])->name('manager.room-category.index');
-    Route::get('/room-category/create', [CategoryController::class, 'create'])->name('manager.room-category.create');      
-    Route::post('/room-category', [CategoryController::class, 'store'])->name('manager.room-category.store');
-    Route::get('/room-category/{id}', [CategoryController::class, 'show'])->name('manager.room-category.show');
-    Route::get('/room-category/{id}/edit', [CategoryController::class, 'edit'])->name('manager.room-category.edit');
-    Route::put('/room-category/{id}', [CategoryController::class, 'update'])->name('manager.room-category.update');
-    Route::delete('/room-category/{id}', [CategoryController::class, 'destroy'])->name('manager.room-category.destroy');
-    
+    Route::prefix('room')->group(function () {
+        Route::get('/category', [CategoryController::class, 'index'])->name('manager.room.category.index');
+        Route::get('/category/create', [CategoryController::class, 'create'])->name('manager.room.category.create');
+        Route::post('/category', [CategoryController::class, 'store'])->name('manager.room.category.store');
+        Route::get('/category/{id}', [CategoryController::class, 'show'])->name('manager.room.category.show');
+        Route::get('/category/{id}/edit', [CategoryController::class, 'edit'])->name('manager.room.category.edit');
+        Route::put('/category/{id}', [CategoryController::class, 'update'])->name('manager.room.category.update');
+        Route::delete('/category/{id}', [CategoryController::class, 'destroy'])->name('manager.room.category.destroy');
+
+        Route::get('/occupancy-status', [OccupancyStatusController::class, 'index'])->name('manager.room.occupancy-status.index');
+
+        Route::get('/condition-status', [ConditionStatusController::class, 'index'])->name('manager.room.condition-status.index');
+
+        Route::get('/facility', [FacilityController::class, 'index'])->name('manager.room.facility.index');
+
+        Route::get('/', [RoomController::class, 'index'])->name('manager.room.index');
+    });
+
+
 
 });
+
 
 // Operator routes
 Route::middleware(['auth', 'verified', 'role:operator'])->prefix('operator')->group(function () {

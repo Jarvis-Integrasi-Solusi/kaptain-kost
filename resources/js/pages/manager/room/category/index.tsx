@@ -49,7 +49,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
     {
         title: 'Category',
-        href: '/manager/room-categories',
+        href: '/manager/room/category',
     },
 ];
 
@@ -138,7 +138,7 @@ export default function RoomCategoryList() {
 
     const handleDelete = async (id: number) => {
         setIsDeleting(true);
-        router.delete(`/manager/room-category/${id}`, {
+        router.delete(`/manager/room/category/${id}`, {
             onSuccess: () => {
                 setDeleteId(null);
             },
@@ -168,7 +168,7 @@ export default function RoomCategoryList() {
                                 </CardDescription>
                             </div>
                             <Button asChild>
-                                <Link href="/manager/room-category/create">
+                                <Link href="/manager/room/category/create">
                                     <Plus className="mr-2 h-4 w-4" />
                                     Add Category
                                 </Link>
@@ -249,19 +249,19 @@ export default function RoomCategoryList() {
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
                                                             <DropdownMenuItem asChild>
-                                                                <Link href={`/manager/room-category/${category.id}`}>
+                                                                <Link href={`/manager/room/category/${category.id}`}>
                                                                     <Eye className="mr-2 h-4 w-4" />
                                                                     View
                                                                 </Link>
                                                             </DropdownMenuItem>
-                                                            <DropdownMenuItem asChild>
-                                                                <Link href={`/manager/room-category/${category.id}/edit`}>
-                                                                    <Edit className="mr-2 h-4 w-4" />
+                                                            <DropdownMenuItem className='text-yellow-600' asChild>
+                                                                <Link href={`/manager/room/category/${category.id}/edit`}>
+                                                                    <Edit className="mr-2 h-4 w-4 text-yellow-600" />
                                                                     Edit
                                                                 </Link>
                                                             </DropdownMenuItem>
                                                             <DropdownMenuItem className="text-red-600" onClick={() => setDeleteId(category.id)}>
-                                                                <Trash2 className="mr-2 h-4 w-4" />
+                                                                <Trash2 className="mr-2 h-4 w-4 text-red-600" />
                                                                 Delete
                                                             </DropdownMenuItem>
                                                         </DropdownMenuContent>
@@ -330,9 +330,7 @@ export default function RoomCategoryList() {
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            This will permanently delete the room category.
-                        </AlertDialogDescription>
+                        <AlertDialogDescription>This will permanently delete the room category.</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>

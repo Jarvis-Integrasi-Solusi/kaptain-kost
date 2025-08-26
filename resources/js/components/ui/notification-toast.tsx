@@ -1,3 +1,5 @@
+// resources/js/components/ui/notification-toast.tsx
+
 import { Button } from '@/components/ui/button';
 import { usePage } from '@inertiajs/react';
 import { CheckCircle, X, XCircle } from 'lucide-react';
@@ -8,6 +10,7 @@ interface FlashMessage {
     message: string;
 }
 
+// Update interface untuk mencocokkan struktur Laravel flash messages
 interface PagePropsWithFlash {
     flash: {
         success?: FlashMessage;
@@ -31,6 +34,7 @@ export default function NotificationToast() {
         
         const newNotifications: NotificationItem[] = [];
         
+        // Periksa apakah flash dan properti success/error ada
         if (flash?.success) {
             newNotifications.push({
                 ...flash.success,
@@ -40,7 +44,6 @@ export default function NotificationToast() {
         }
         
         if (flash?.error) {
-            console.log('Error message found:', flash.error);
             newNotifications.push({
                 ...flash.error,
                 type: 'error',
@@ -49,10 +52,9 @@ export default function NotificationToast() {
         }
 
         if (newNotifications.length > 0) {
-            console.log('Adding notifications:', newNotifications);
             setNotifications(prev => [...prev, ...newNotifications]);
-            
-            // auto dismiss in 3 second
+
+            // auto dismiss after 3 seconds
             newNotifications.forEach(notification => {
                 setTimeout(() => {
                     setNotifications(prev => prev.filter(n => n.id !== notification.id));

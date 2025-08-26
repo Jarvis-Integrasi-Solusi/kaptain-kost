@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -6,11 +7,24 @@ import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type PageProps } from '@/types';
 import { cleanCurrencyInput, formatCurrency, parseCurrency } from '@/utils/format';
-import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { ArrowLeft, Save } from 'lucide-react';
-import { useState } from 'react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { Save } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
-interface CreateRoomCategoryPageProps extends PageProps {
+interface RoomCategory {
+    id: number;
+    name: string;
+    monthly_rental_fee: number;
+    deposit_fee: number;
+    management_fee: number;
+    water_bill_fee: number;
+    electricity_bill_fee: number;
+    created_at: string;
+    updated_at: string;
+}
+
+interface EditRoomCategoryPageProps extends PageProps {
+    roomCategory: RoomCategory;
     flash?: {
         success?: {
             title: string;
@@ -33,33 +47,33 @@ interface FormData {
     electricity_bill_fee: string;
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Manager',
-    },
-    {
-        title: 'Rooms',
-    },
-    {
-        title: 'Category',
-        href: '/manager/room-category',
-    },
-    {
-        title: 'Create',
-        href: '/manager/room-category/create',
-    },
-];
+export default function EditRoomCategory() {
+    const { roomCategory, errors } = usePage<EditRoomCategoryPageProps>().props;
 
-export default function CreateRoomCategory() {
-    const { errors } = usePage<CreateRoomCategoryPageProps>().props;
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: 'Manager',
+        },
+        {
+            title: 'Rooms',
+        },
+        {
+            title: 'Category',
+            href: '/manager/room/category',
+        },
+        {
+            title: roomCategory.name,
+            href: `/manager/room/category/${roomCategory.id}/edit`,
+        },
+    ];
 
-    const { data, setData, post, processing, reset } = useForm<FormData>({
-        name: '',
-        monthly_rental_fee: '',
-        deposit_fee: '',
-        management_fee: '',
-        water_bill_fee: '',
-        electricity_bill_fee: '',
+    const { data, setData, put, processing } = useForm<FormData>({
+        name: roomCategory.name,
+        monthly_rental_fee: roomCategory.monthly_rental_fee.toString(),
+        deposit_fee: roomCategory.deposit_fee.toString(),
+        management_fee: roomCategory.management_fee.toString(),
+        water_bill_fee: roomCategory.water_bill_fee.toString(),
+        electricity_bill_fee: roomCategory.electricity_bill_fee.toString(),
     });
 
     // State for formatted display values
@@ -70,6 +84,17 @@ export default function CreateRoomCategory() {
         water_bill_fee: '',
         electricity_bill_fee: '',
     });
+
+    // Initialize display values when component mounts with existing data
+    useEffect(() => {
+        const newDisplayValues = {} as typeof displayValues;
+        Object.keys(displayValues).forEach((key) => {
+            const fieldKey = key as keyof typeof displayValues;
+            const value = parseFloat(data[fieldKey]) || 0;
+            newDisplayValues[fieldKey] = value > 0 ? formatCurrency(value, { showSymbol: false }) : '';
+        });
+        setDisplayValues(newDisplayValues);
+    }, []);
 
     // Calculate totals
     const calculateTotal = () => {
@@ -105,27 +130,14 @@ export default function CreateRoomCategory() {
         }));
     };
 
-    // // Initialize display values when component mounts or data changes
-    // useEffect(() => {
-    //     const newDisplayValues = {} as typeof displayValues;
-    //     Object.keys(displayValues).forEach((key) => {
-    //         const fieldKey = key as keyof typeof displayValues;
-    //         const value = parseFloat(data[fieldKey]) || 0;
-    //         newDisplayValues[fieldKey] = value > 0 ? formatCurrency(value, { showSymbol: false }) : '';
-    //     });
-    //     setDisplayValues(newDisplayValues);
-    // }, []);
-
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        console.log('Submitting form with data:', data);
+        console.log('Updating room category with data:', data);
 
-        post('/manager/room-category', {
+        put(`/manager/room/category/${roomCategory.id}`, {
             onSuccess: (page) => {
-                console.log('Form submitted successfully, page props:', page.props);
-                // Reset both form data and display values
-                reset();
+                console.log('Room category updated successfully, page props:', page.props);
             },
             onError: (errors) => {
                 console.log('Form submission errors:', errors);
@@ -134,25 +146,19 @@ export default function CreateRoomCategory() {
     };
 
     const handleCancel = () => {
-        router.get('/manager/room-category');
+        router.get('/manager/room/category');
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Create Room Category" />
+            <Head title={`Edit ${roomCategory.name}`} />
 
             <div className="flex h-full flex-1 flex-col gap-6 p-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold">Create Room Category</h1>
-                        <p className="text-muted-foreground">Add a new room category with pricing details</p>
+                        <h1 className="text-2xl font-bold">Edit Room Category</h1>
+                        <p className="text-muted-foreground">Update {roomCategory.name} pricing details</p>
                     </div>
-                    <Button variant="outline" asChild>
-                        <Link href="/manager/room-category">
-                            <ArrowLeft className="mr-2 h-4 w-4" />
-                            Back to Categories
-                        </Link>
-                    </Button>
                 </div>
 
                 <div className="grid gap-6 lg:grid-cols-3">
@@ -161,7 +167,7 @@ export default function CreateRoomCategory() {
                         <Card>
                             <CardHeader>
                                 <CardTitle>Category Information</CardTitle>
-                                <CardDescription>Enter the basic information and pricing for this room category</CardDescription>
+                                <CardDescription>Update the basic information and pricing for this room category</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -186,7 +192,7 @@ export default function CreateRoomCategory() {
                                     <div className="space-y-4">
                                         <div>
                                             <h3 className="text-lg font-medium">Pricing Details</h3>
-                                            <p className="text-sm text-muted-foreground">Set the fees for this room category</p>
+                                            <p className="text-sm text-muted-foreground">Update the fees for this room category</p>
                                         </div>
 
                                         <div className="grid gap-4 sm:grid-cols-2">
@@ -269,7 +275,7 @@ export default function CreateRoomCategory() {
                                         </Button>
                                         <Button type="submit" disabled={processing} className="sm:w-auto">
                                             <Save className="mr-2 h-4 w-4" />
-                                            {processing ? 'Creating...' : 'Create'}
+                                            {processing ? 'Updating...' : 'Update'}
                                         </Button>
                                     </div>
                                 </form>
@@ -282,7 +288,7 @@ export default function CreateRoomCategory() {
                         <Card>
                             <CardHeader>
                                 <CardTitle className="text-lg">Cost Summary</CardTitle>
-                                <CardDescription>Preview of pricing breakdown</CardDescription>
+                                <CardDescription>Preview of updated pricing breakdown</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-3">
@@ -322,6 +328,11 @@ export default function CreateRoomCategory() {
                                             <span className="text-lg">{formatCurrency(totals.initialTotal)}</span>
                                         </div>
                                     </div>
+                                </div>
+
+                                <Separator />
+                                <div className="text-xs text-muted-foreground">
+                                    <p>Last updated: {new Date(roomCategory.updated_at).toLocaleDateString()}</p>
                                 </div>
                             </CardContent>
                         </Card>

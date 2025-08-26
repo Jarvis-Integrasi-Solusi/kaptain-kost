@@ -64,27 +64,27 @@ const managerNavGroups: NavGroup[] = [
         items: [
             {
                 title: 'Room List',
-                href: '/manager/rooms',
+                href: '/manager/room',
                 icon: BedDouble,
             },
             {
                 title: 'Category',
-                href: '/manager/room-category',
+                href: '/manager/room/category',
                 icon: ChartBarStacked,
             },
             {
                 title: 'Facility',
-                href: '/manager/rooms/facility',
+                href: '/manager/room/facility',
                 icon: AirVent,
             },
             {
                 title: 'Occupancy Status',
-                href: '/manager/rooms/occupancy',
+                href: '/manager/room/occupancy-status',
                 icon: DoorOpen,
             },
             {
                 title: 'Condition Status',
-                href: '/manager/rooms/condition',
+                href: '/manager/room/condition-status',
                 icon: ShieldCheck,
             },
         ],
