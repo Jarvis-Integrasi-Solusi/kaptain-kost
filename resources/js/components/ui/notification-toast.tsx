@@ -10,7 +10,6 @@ interface FlashMessage {
     message: string;
 }
 
-// Update interface untuk mencocokkan struktur Laravel flash messages
 interface PagePropsWithFlash {
     flash: {
         success?: FlashMessage;
