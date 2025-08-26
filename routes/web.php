@@ -25,6 +25,7 @@ Route::middleware(['auth', 'verified', 'role:manager'])->prefix('manager')->grou
     Route::get('/room-category/create', [CategoryController::class, 'create'])->name('manager.room-category.create');      
     Route::post('/room-category', [CategoryController::class, 'store'])->name('manager.room-category.store');
     Route::get('/room-category/{id}', [CategoryController::class, 'show'])->name('manager.room-category.show');
+    Route::get('/room-category/{id}/edit', [CategoryController::class, 'edit'])->name('manager.room-category.edit');
     Route::put('/room-category/{id}', [CategoryController::class, 'update'])->name('manager.room-category.update');
     Route::delete('/room-category/{id}', [CategoryController::class, 'destroy'])->name('manager.room-category.destroy');
     

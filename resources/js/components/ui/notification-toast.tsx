@@ -27,14 +27,11 @@ export default function NotificationToast() {
     const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
     useEffect(() => {
-        // Debug log untuk melihat apa yang diterima
-        console.log('Flash messages received:', flash);
+
         
         const newNotifications: NotificationItem[] = [];
         
-        // Periksa apakah flash dan properti success/error ada
         if (flash?.success) {
-            console.log('Success message found:', flash.success);
             newNotifications.push({
                 ...flash.success,
                 type: 'success',
@@ -55,11 +52,11 @@ export default function NotificationToast() {
             console.log('Adding notifications:', newNotifications);
             setNotifications(prev => [...prev, ...newNotifications]);
             
-            // Auto dismiss setelah 5 detik
+            // auto dismiss in 3 second
             newNotifications.forEach(notification => {
                 setTimeout(() => {
                     setNotifications(prev => prev.filter(n => n.id !== notification.id));
-                }, 5000);
+                }, 3000);
             });
         }
     }, [flash]);

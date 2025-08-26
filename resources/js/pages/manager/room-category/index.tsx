@@ -138,7 +138,7 @@ export default function RoomCategoryList() {
 
     const handleDelete = async (id: number) => {
         setIsDeleting(true);
-        router.delete(`/manager/room-categories/${id}`, {
+        router.delete(`/manager/room-category/${id}`, {
             onSuccess: () => {
                 setDeleteId(null);
             },
@@ -249,13 +249,13 @@ export default function RoomCategoryList() {
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
                                                             <DropdownMenuItem asChild>
-                                                                <Link href={`/manager/room-categories/${category.id}`}>
+                                                                <Link href={`/manager/room-category/${category.id}`}>
                                                                     <Eye className="mr-2 h-4 w-4" />
                                                                     View
                                                                 </Link>
                                                             </DropdownMenuItem>
                                                             <DropdownMenuItem asChild>
-                                                                <Link href={`/manager/room-categories/${category.id}/edit`}>
+                                                                <Link href={`/manager/room-category/${category.id}/edit`}>
                                                                     <Edit className="mr-2 h-4 w-4" />
                                                                     Edit
                                                                 </Link>
@@ -331,7 +331,7 @@ export default function RoomCategoryList() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the room category and remove all associated data.
+                            This will permanently delete the room category.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
