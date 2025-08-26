@@ -54,7 +54,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function RoomCategoryList() {
-    
     const { categories, filters } = usePage<RoomCategoryPageProps>().props;
     const [search, setSearch] = useState(filters?.search || '');
     const [currentPage, setCurrentPage] = useState(1);
@@ -162,14 +161,14 @@ export default function RoomCategoryList() {
                     <CardHeader>
                         <div className="flex items-center justify-between">
                             <div>
-                                <CardTitle className="text-xl">Room Categories ({totalItems})</CardTitle>
+                                <CardTitle className="text-xl">Room Categories</CardTitle>
                                 <CardDescription>
                                     Manage your room categories and pricing
                                     {search && <span className="ml-2 text-sm text-blue-600">• Showing results for "{search}"</span>}
                                 </CardDescription>
                             </div>
                             <Button asChild>
-                                <Link href="/manager/room-categories/create">
+                                <Link href="/manager/room-category/create">
                                     <Plus className="mr-2 h-4 w-4" />
                                     Add Category
                                 </Link>
