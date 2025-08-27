@@ -19,6 +19,9 @@ class DatabaseSeeder extends Seeder
             RoomCategorySeeder::class,
             ConditionStatusSeeder::class,
             OccupancyStatusSeeder::class,
+            RoomSeeder::class,
+            RentalPeriodSeeder::class,
+            PaymentTypeSeeder::class,
         ]);
     }
 }

@@ -7,7 +7,6 @@ import {
     BarChart3,
     BedDouble,
     BookUser,
-    Building,
     CalendarRange,
     ChartBarStacked,
     ClipboardCopy,
@@ -16,6 +15,7 @@ import {
     FileText,
     LayoutGrid,
     ShieldCheck,
+    User,
     UserCog,
     Wrench,
 } from 'lucide-react';
@@ -42,19 +42,19 @@ const managerNavGroups: NavGroup[] = [
         title: 'Users ',
         items: [
             {
-                title: 'Managers',
+                title: 'Manager',
                 href: '/manager/users/managers',
                 icon: UserCog,
             },
             {
-                title: 'Operators',
+                title: 'Operator',
                 href: '/manager/users/operators',
                 icon: Wrench,
             },
             {
-                title: 'Tenants',
+                title: 'Tenant',
                 href: '/manager/users/tenants',
-                icon: Building,
+                icon: User,
             },
         ],
     },

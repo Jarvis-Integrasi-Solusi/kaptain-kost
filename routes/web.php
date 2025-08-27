@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Manager\Rental\PaymentTypeController;
+use App\Http\Controllers\Manager\Rental\PeriodController;
+use App\Http\Controllers\Manager\Rental\RecordController;
 use App\Http\Controllers\Manager\Room\CategoryController;
 use App\Http\Controllers\Manager\Room\ConditionStatusController;
 use App\Http\Controllers\Manager\Room\OccupancyStatusController;
@@ -40,6 +43,20 @@ Route::middleware(['auth', 'verified', 'role:manager'])->prefix('manager')->grou
         Route::get('/condition-status/{id}', [ConditionStatusController::class, 'show'])->name('manager.room.condition-status.show');
 
         Route::get('/', [RoomController::class, 'index'])->name('manager.room.index');
+        Route::get('/create', [RoomController::class, 'create'])->name('manager.room.create');
+        Route::post('/', [RoomController::class, 'store'])->name('manager.room.store');
+        Route::get('/{id}/edit', [RoomController::class, 'edit'])->name('manager.room.edit');
+        Route::put('/{id}', [RoomController::class, 'update'])->name('manager.room.update');
+        Route::delete('/{id}', [RoomController::class, 'destroy'])->name('manager.room.destroy');
+    });
+
+    Route::prefix('rental')->group(function () {
+
+        Route::get('/period', [PeriodController::class, 'index'])->name('manager.rental.period.index');
+
+        Route::get('/payment-type', [PaymentTypeController::class, 'index'])->name('manager.rental.payment-type.index');
+
+        Route::get('/', [RecordController::class, 'index'])->name('manager.rental.record.index');
     });
 
 

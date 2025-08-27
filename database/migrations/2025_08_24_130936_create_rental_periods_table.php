@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('rental_periods', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('company_id')->nullable()->constrained('companies')->onDelete('set null');
             $table->string('name');
             $table->integer('month');
             $table->timestamps();
