@@ -35,11 +35,14 @@ Route::middleware(['auth', 'verified', 'role:manager'])->prefix('manager')->grou
         Route::delete('/category/{id}', [CategoryController::class, 'destroy'])->name('manager.room.category.destroy');
 
         Route::get('/occupancy-status', [OccupancyStatusController::class, 'index'])->name('manager.room.occupancy-status.index');
-            Route::post('/occupancy-status', [OccupancyStatusController::class, 'store'])->name('manager.room.occupancy-status.store');
-            Route::put('/occupancy-status/{id}', [OccupancyStatusController::class, 'update'])->name('manager.room.occupancy-status.update');
-            Route::delete('/occupancy-status/{id}', [OccupancyStatusController::class, 'destroy'])->name('manager.room.occupancy-status.destroy');
+        Route::post('/occupancy-status', [OccupancyStatusController::class, 'store'])->name('manager.room.occupancy-status.store');
+        Route::put('/occupancy-status/{id}', [OccupancyStatusController::class, 'update'])->name('manager.room.occupancy-status.update');
+        Route::delete('/occupancy-status/{id}', [OccupancyStatusController::class, 'destroy'])->name('manager.room.occupancy-status.destroy');
 
         Route::get('/condition-status', [ConditionStatusController::class, 'index'])->name('manager.room.condition-status.index');
+        Route::post('/condition-status', [ConditionStatusController::class, 'store'])->name('manager.room.condition-status.store');
+        Route::put('/condition-status/{id}', [ConditionStatusController::class, 'update'])->name('manager.room.condition-status.update');
+        Route::delete('/condition-status/{id}', [ConditionStatusController::class, 'destroy'])->name('manager.room.condition-status.destroy');
 
         Route::get('/facility', [FacilityController::class, 'index'])->name('manager.room.facility.index');
 
