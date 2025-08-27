@@ -188,17 +188,6 @@ export default function RoomCategoryList() {
                             </div>
 
                             <div className="flex gap-2">
-                                <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
-                                    <SelectTrigger className="w-[120px]">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="5">5 per page</SelectItem>
-                                        <SelectItem value="8">8 per page</SelectItem>
-                                        <SelectItem value="10">10 per page</SelectItem>
-                                    </SelectContent>
-                                </Select>
-
                                 {search && (
                                     <Button type="button" variant="outline" onClick={clearSearch}>
                                         <X className="mr-2 h-4 w-4" />
@@ -254,7 +243,7 @@ export default function RoomCategoryList() {
                                                                     View
                                                                 </Link>
                                                             </DropdownMenuItem>
-                                                            <DropdownMenuItem className='text-yellow-600' asChild>
+                                                            <DropdownMenuItem className="text-yellow-600" asChild>
                                                                 <Link href={`/manager/room/category/${category.id}/edit`}>
                                                                     <Edit className="mr-2 h-4 w-4 text-yellow-600" />
                                                                     Edit
@@ -276,9 +265,22 @@ export default function RoomCategoryList() {
 
                         {/* Pagination */}
                         {totalPages > 1 && (
-                            <div className="flex items-center justify-between space-x-2 py-4">
-                                <div className="text-sm text-muted-foreground">
-                                    Showing {fromItem} to {toItem} of {totalItems} entries
+                            <div className="flex flex-col items-center gap-4 py-4 md:flex-row md:justify-between">
+                                <div className="flex items-center gap-2">
+                                    <div className="text-sm text-muted-foreground">
+                                        {' '}
+                                        Showing {fromItem} to {toItem} of {totalItems} entries
+                                    </div>
+                                    <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
+                                        <SelectTrigger className="w-[120px]">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="5">5 per page</SelectItem>
+                                            <SelectItem value="8">8 per page</SelectItem>
+                                            <SelectItem value="10">10 per page</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
 
                                 <div className="flex items-center space-x-2">
