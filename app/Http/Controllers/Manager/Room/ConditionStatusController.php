@@ -12,11 +12,7 @@ class ConditionStatusController extends Controller
 {
     public function index(Request $request)
     {
-         $user = Auth::user();
-
-         $allConditionStatuses = ConditionStatus::where('company_id', $user->company_id)
-             ->orderBy('created_at', 'desc')
-             ->get();
+        $allConditionStatuses = ConditionStatus::all();
 
         return Inertia::render('manager/room/condition-status/index', [
             'condition_statuses' => $allConditionStatuses,
@@ -29,21 +25,17 @@ class ConditionStatusController extends Controller
     public function store(Request $request)
     {
         try {
-            $user = Auth::user();
-
             // Validate the request
             $validated = $request->validate([
                 'name' => [
                     'required',
                     'string',
                     'max:255',
-                    'unique:condition_statuses,name,NULL,id,company_id,' . $user->company_id
                 ],
             ]);
 
             // Create the condition status
             $conditionStatus = ConditionStatus::create([
-                'company_id' => $user->company_id,
                 'name' => $validated['name'],
             ]);
 
@@ -67,10 +59,8 @@ class ConditionStatusController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $user = Auth::user();
-
             // Find the condition status
-            $conditionStatus = ConditionStatus::where('company_id', $user->company_id)->findOrFail($id);
+            $conditionStatus = ConditionStatus::findOrFail($id);
 
             // Validate the request
             $validated = $request->validate([
@@ -78,8 +68,7 @@ class ConditionStatusController extends Controller
                     'required',
                     'string',
                     'max:255',
-                    'unique:condition_statuses,name,' . $conditionStatus->id . ',id,company_id,' . $user->company_id
-                ],
+                    ],
             ]);
 
             // Update the condition status
@@ -106,10 +95,8 @@ class ConditionStatusController extends Controller
     public function destroy($id)
     {
         try {
-            $user = Auth::user();
-
             // Find the condition status
-            $conditionStatus = ConditionStatus::where('company_id', $user->company_id)->findOrFail($id);
+            $conditionStatus = ConditionStatus::findOrFail($id);
 
             // Delete the condition status
             $conditionStatus->delete();

@@ -6,7 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type PageProps } from '@/types';
 import { cleanCurrencyInput, formatCurrency, parseCurrency } from '@/utils/format';
-import { Head,  router, useForm, usePage } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { Save } from 'lucide-react';
 import { useState } from 'react';
 
@@ -29,8 +29,6 @@ interface FormData {
     monthly_rental_fee: string;
     deposit_fee: string;
     management_fee: string;
-    water_bill_fee: string;
-    electricity_bill_fee: string;
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -58,8 +56,6 @@ export default function CreateRoomCategory() {
         monthly_rental_fee: '',
         deposit_fee: '',
         management_fee: '',
-        water_bill_fee: '',
-        electricity_bill_fee: '',
     });
 
     // State for formatted display values
@@ -67,8 +63,6 @@ export default function CreateRoomCategory() {
         monthly_rental_fee: '',
         deposit_fee: '',
         management_fee: '',
-        water_bill_fee: '',
-        electricity_bill_fee: '',
     });
 
     // Calculate totals
@@ -76,12 +70,10 @@ export default function CreateRoomCategory() {
         const monthly = parseFloat(data.monthly_rental_fee) || 0;
         const deposit = parseFloat(data.deposit_fee) || 0;
         const management = parseFloat(data.management_fee) || 0;
-        const water = parseFloat(data.water_bill_fee) || 0;
-        const electricity = parseFloat(data.electricity_bill_fee) || 0;
 
         return {
-            monthlyTotal: monthly + management + water + electricity,
-            initialTotal: deposit + monthly + management + water + electricity,
+            monthlyTotal: monthly + management,
+            initialTotal: deposit + monthly + management,
         };
     };
 
@@ -105,30 +97,12 @@ export default function CreateRoomCategory() {
         }));
     };
 
-    // // Initialize display values when component mounts or data changes
-    // useEffect(() => {
-    //     const newDisplayValues = {} as typeof displayValues;
-    //     Object.keys(displayValues).forEach((key) => {
-    //         const fieldKey = key as keyof typeof displayValues;
-    //         const value = parseFloat(data[fieldKey]) || 0;
-    //         newDisplayValues[fieldKey] = value > 0 ? formatCurrency(value, { showSymbol: false }) : '';
-    //     });
-    //     setDisplayValues(newDisplayValues);
-    // }, []);
-
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        console.log('Submitting form with data:', data);
-
         post('/manager/room/category', {
-            onSuccess: (page) => {
-                console.log('Form submitted successfully, page props:', page.props);
-                // Reset both form data and display values
+            onSuccess: () => {
                 reset();
-            },
-            onError: (errors) => {
-                console.log('Form submission errors:', errors);
             },
         });
     };
@@ -212,7 +186,7 @@ export default function CreateRoomCategory() {
                                                 {errors.deposit_fee && <p className="text-sm text-red-500">{errors.deposit_fee}</p>}
                                             </div>
 
-                                            <div className="space-y-2">
+                                            <div className="space-y-2 sm:col-span-2">
                                                 <Label htmlFor="management_fee" className="text-sm font-medium">
                                                     Management Fee *
                                                 </Label>
@@ -224,34 +198,6 @@ export default function CreateRoomCategory() {
                                                     className={errors.management_fee ? 'border-red-500' : ''}
                                                 />
                                                 {errors.management_fee && <p className="text-sm text-red-500">{errors.management_fee}</p>}
-                                            </div>
-
-                                            <div className="space-y-2">
-                                                <Label htmlFor="water_bill_fee" className="text-sm font-medium">
-                                                    Water Bill Fee *
-                                                </Label>
-                                                <Input
-                                                    id="water_bill_fee"
-                                                    placeholder="0.00"
-                                                    value={displayValues.water_bill_fee}
-                                                    onChange={(e) => handleCurrencyChange('water_bill_fee', e.target.value)}
-                                                    className={errors.water_bill_fee ? 'border-red-500' : ''}
-                                                />
-                                                {errors.water_bill_fee && <p className="text-sm text-red-500">{errors.water_bill_fee}</p>}
-                                            </div>
-
-                                            <div className="space-y-2 sm:col-span-2">
-                                                <Label htmlFor="electricity_bill_fee" className="text-sm font-medium">
-                                                    Electricity Bill Fee *
-                                                </Label>
-                                                <Input
-                                                    id="electricity_bill_fee"
-                                                    placeholder="0.00"
-                                                    value={displayValues.electricity_bill_fee}
-                                                    onChange={(e) => handleCurrencyChange('electricity_bill_fee', e.target.value)}
-                                                    className={errors.electricity_bill_fee ? 'border-red-500' : ''}
-                                                />
-                                                {errors.electricity_bill_fee && <p className="text-sm text-red-500">{errors.electricity_bill_fee}</p>}
                                             </div>
                                         </div>
                                     </div>
@@ -287,14 +233,6 @@ export default function CreateRoomCategory() {
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Management Fee</span>
                                         <span className="font-medium">{formatCurrency(parseFloat(data.management_fee) || 0)}</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-muted-foreground">Water Bill</span>
-                                        <span className="font-medium">{formatCurrency(parseFloat(data.water_bill_fee) || 0)}</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-muted-foreground">Electricity Bill</span>
-                                        <span className="font-medium">{formatCurrency(parseFloat(data.electricity_bill_fee) || 0)}</span>
                                     </div>
 
                                     <Separator />

@@ -19,7 +19,6 @@ return new class extends Migration
             $table->foreignId('room_category_id')->constrained('room_categories');
             $table->string('name');
             $table->string('image')->nullable();
-            $table->enum('type', ['superior', 'deluxe']);
             $table->string('description')->nullable();
             $table->timestamps();
         });

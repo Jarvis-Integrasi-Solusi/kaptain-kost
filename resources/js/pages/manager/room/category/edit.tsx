@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -17,8 +16,6 @@ interface RoomCategory {
     monthly_rental_fee: number;
     deposit_fee: number;
     management_fee: number;
-    water_bill_fee: number;
-    electricity_bill_fee: number;
     created_at: string;
     updated_at: string;
 }
@@ -43,8 +40,6 @@ interface FormData {
     monthly_rental_fee: string;
     deposit_fee: string;
     management_fee: string;
-    water_bill_fee: string;
-    electricity_bill_fee: string;
 }
 
 export default function EditRoomCategory() {
@@ -72,8 +67,6 @@ export default function EditRoomCategory() {
         monthly_rental_fee: roomCategory.monthly_rental_fee.toString(),
         deposit_fee: roomCategory.deposit_fee.toString(),
         management_fee: roomCategory.management_fee.toString(),
-        water_bill_fee: roomCategory.water_bill_fee.toString(),
-        electricity_bill_fee: roomCategory.electricity_bill_fee.toString(),
     });
 
     // State for formatted display values
@@ -81,8 +74,6 @@ export default function EditRoomCategory() {
         monthly_rental_fee: '',
         deposit_fee: '',
         management_fee: '',
-        water_bill_fee: '',
-        electricity_bill_fee: '',
     });
 
     // Initialize display values when component mounts with existing data
@@ -101,12 +92,10 @@ export default function EditRoomCategory() {
         const monthly = parseFloat(data.monthly_rental_fee) || 0;
         const deposit = parseFloat(data.deposit_fee) || 0;
         const management = parseFloat(data.management_fee) || 0;
-        const water = parseFloat(data.water_bill_fee) || 0;
-        const electricity = parseFloat(data.electricity_bill_fee) || 0;
 
         return {
-            monthlyTotal: monthly + management + water + electricity,
-            initialTotal: deposit + monthly + management + water + electricity,
+            monthlyTotal: monthly + management,
+            initialTotal: deposit + monthly + management,
         };
     };
 
@@ -133,16 +122,7 @@ export default function EditRoomCategory() {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        console.log('Updating room category with data:', data);
-
-        put(`/manager/room/category/${roomCategory.id}`, {
-            onSuccess: (page) => {
-                console.log('Room category updated successfully, page props:', page.props);
-            },
-            onError: (errors) => {
-                console.log('Form submission errors:', errors);
-            },
-        });
+        put(`/manager/room/category/${roomCategory.id}`);
     };
 
     const handleCancel = () => {
@@ -224,7 +204,7 @@ export default function EditRoomCategory() {
                                                 {errors.deposit_fee && <p className="text-sm text-red-500">{errors.deposit_fee}</p>}
                                             </div>
 
-                                            <div className="space-y-2">
+                                            <div className="space-y-2 sm:col-span-2">
                                                 <Label htmlFor="management_fee" className="text-sm font-medium">
                                                     Management Fee *
                                                 </Label>
@@ -236,34 +216,6 @@ export default function EditRoomCategory() {
                                                     className={errors.management_fee ? 'border-red-500' : ''}
                                                 />
                                                 {errors.management_fee && <p className="text-sm text-red-500">{errors.management_fee}</p>}
-                                            </div>
-
-                                            <div className="space-y-2">
-                                                <Label htmlFor="water_bill_fee" className="text-sm font-medium">
-                                                    Water Bill Fee *
-                                                </Label>
-                                                <Input
-                                                    id="water_bill_fee"
-                                                    placeholder="0.00"
-                                                    value={displayValues.water_bill_fee}
-                                                    onChange={(e) => handleCurrencyChange('water_bill_fee', e.target.value)}
-                                                    className={errors.water_bill_fee ? 'border-red-500' : ''}
-                                                />
-                                                {errors.water_bill_fee && <p className="text-sm text-red-500">{errors.water_bill_fee}</p>}
-                                            </div>
-
-                                            <div className="space-y-2 sm:col-span-2">
-                                                <Label htmlFor="electricity_bill_fee" className="text-sm font-medium">
-                                                    Electricity Bill Fee *
-                                                </Label>
-                                                <Input
-                                                    id="electricity_bill_fee"
-                                                    placeholder="0.00"
-                                                    value={displayValues.electricity_bill_fee}
-                                                    onChange={(e) => handleCurrencyChange('electricity_bill_fee', e.target.value)}
-                                                    className={errors.electricity_bill_fee ? 'border-red-500' : ''}
-                                                />
-                                                {errors.electricity_bill_fee && <p className="text-sm text-red-500">{errors.electricity_bill_fee}</p>}
                                             </div>
                                         </div>
                                     </div>
@@ -299,14 +251,6 @@ export default function EditRoomCategory() {
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Management Fee</span>
                                         <span className="font-medium">{formatCurrency(parseFloat(data.management_fee) || 0)}</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-muted-foreground">Water Bill</span>
-                                        <span className="font-medium">{formatCurrency(parseFloat(data.water_bill_fee) || 0)}</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-muted-foreground">Electricity Bill</span>
-                                        <span className="font-medium">{formatCurrency(parseFloat(data.electricity_bill_fee) || 0)}</span>
                                     </div>
 
                                     <Separator />

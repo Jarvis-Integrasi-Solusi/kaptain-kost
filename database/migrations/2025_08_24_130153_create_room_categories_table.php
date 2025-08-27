@@ -16,8 +16,6 @@ return new class extends Migration
             $table->string('name');
             $table->foreignId('company_id')->nullable()->constrained('companies')->onDelete('set null');
             $table->integer('management_fee');
-            $table->integer('electricity_bill_fee');
-            $table->integer('water_bill_fee');
             $table->integer('monthly_rental_fee');
             $table->integer('deposit_fee');
             $table->timestamps();

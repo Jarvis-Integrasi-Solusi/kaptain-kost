@@ -18,6 +18,7 @@ class UserSeeder extends Seeder
             'password' => Hash::make('password'),
             'role' => 'manager',
             'email_verified_at' => now(),
+            'company_id' => 1
         ]);
 
         // Operator
@@ -27,6 +28,8 @@ class UserSeeder extends Seeder
             'password' => Hash::make('password'),
             'role' => 'operator',
             'email_verified_at' => now(),
+            'company_id' => 1
+
         ]);
 
         // Tenant
@@ -36,6 +39,8 @@ class UserSeeder extends Seeder
             'password' => Hash::make('password'),
             'role' => 'tenant',
             'email_verified_at' => now(),
+            'company_id' => 1
+
         ]);
     }
 }

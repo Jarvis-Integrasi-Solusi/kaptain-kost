@@ -12,11 +12,7 @@ class OccupancyStatusController extends Controller
 {
     public function index(Request $request)
     {
-         $user = Auth::user();
-
-         $allOccupancyStatuses = OccupancyStatus::where('company_id', $user->company_id)
-             ->orderBy('created_at', 'desc')
-             ->get();
+         $allOccupancyStatuses = OccupancyStatus::all();
 
         return Inertia::render('manager/room/occupancy-status/index', [
             'occupancy_statuses' => $allOccupancyStatuses,
@@ -29,21 +25,17 @@ class OccupancyStatusController extends Controller
     public function store(Request $request)
     {
         try {
-            $user = Auth::user();
-
             // Validate the request
             $validated = $request->validate([
                 'name' => [
                     'required',
                     'string',
                     'max:255',
-                    'unique:occupancy_statuses,name,NULL,id,company_id,' . $user->company_id
                 ],
             ]);
 
             // Create the occupancy status
             $occupancyStatus = OccupancyStatus::create([
-                'company_id' => $user->company_id,
                 'name' => $validated['name'],
             ]);
 
@@ -67,18 +59,15 @@ class OccupancyStatusController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $user = Auth::user();
-
             // Find the occupancy status
-            $occupancyStatus = OccupancyStatus::where('company_id', $user->company_id)->findOrFail($id);
+            $occupancyStatus = OccupancyStatus::findOrFail($id);
 
             // Validate the request
             $validated = $request->validate([
                 'name' => [
                     'required',
                     'string',
-                    'max:255',
-                    'unique:occupancy_statuses,name,' . $occupancyStatus->id . ',id,company_id,' . $user->company_id
+                    'max:255'
                 ],
             ]);
 
@@ -109,7 +98,7 @@ class OccupancyStatusController extends Controller
             $user = Auth::user();
 
             // Find the occupancy status
-            $occupancyStatus = OccupancyStatus::where('company_id', $user->company_id)->findOrFail($id);
+            $occupancyStatus = OccupancyStatus::findOrFail($id);
 
             // Delete the occupancy status
             $occupancyStatus->delete();

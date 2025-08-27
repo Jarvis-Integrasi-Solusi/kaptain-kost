@@ -65,18 +65,6 @@ class CategoryController extends Controller
                     'min:0',
                     'max:99999999.99'
                 ],
-                'water_bill_fee' => [
-                    'required',
-                    'numeric',
-                    'min:0',
-                    'max:99999999.99'
-                ],
-                'electricity_bill_fee' => [
-                    'required',
-                    'numeric',
-                    'min:0',
-                    'max:99999999.99'
-                ],
             ], [
                 'name.max' => 'Category name cannot exceed 255 characters.',
             ]);
@@ -88,8 +76,6 @@ class CategoryController extends Controller
                 'monthly_rental_fee' => $validated['monthly_rental_fee'],
                 'deposit_fee' => $validated['deposit_fee'],
                 'management_fee' => $validated['management_fee'],
-                'water_bill_fee' => $validated['water_bill_fee'],
-                'electricity_bill_fee' => $validated['electricity_bill_fee'],
             ]);
 
 
@@ -194,18 +180,6 @@ class CategoryController extends Controller
                     'min:0',
                     'max:99999999.99'
                 ],
-                'water_bill_fee' => [
-                    'required',
-                    'numeric',
-                    'min:0',
-                    'max:99999999.99'
-                ],
-                'electricity_bill_fee' => [
-                    'required',
-                    'numeric',
-                    'min:0',
-                    'max:99999999.99'
-                ],
             ], [
                 'name.max' => 'Category name cannot exceed 255 characters.',
             ]);
@@ -216,8 +190,6 @@ class CategoryController extends Controller
                 'monthly_rental_fee' => $validated['monthly_rental_fee'],
                 'deposit_fee' => $validated['deposit_fee'],
                 'management_fee' => $validated['management_fee'],
-                'water_bill_fee' => $validated['water_bill_fee'],
-                'electricity_bill_fee' => $validated['electricity_bill_fee'],
             ]);
 
             // Redirect with success message

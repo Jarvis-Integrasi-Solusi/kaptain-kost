@@ -4,7 +4,6 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavGroup, type PageProps } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
-    AirVent,
     BarChart3,
     BedDouble,
     BookUser,
@@ -71,11 +70,6 @@ const managerNavGroups: NavGroup[] = [
                 title: 'Category',
                 href: '/manager/room/category',
                 icon: ChartBarStacked,
-            },
-            {
-                title: 'Facility',
-                href: '/manager/room/facility',
-                icon: AirVent,
             },
             {
                 title: 'Occupancy Status',

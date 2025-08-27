@@ -17,7 +17,6 @@ class CompanySeeder extends Seeder
         Company::create([
             'name' => 'GHV 2',
             'address' => 'jl. GHV 2, RT001, RW0010 No.21, Kec. Dummy, Jakarta Pusat',
-            'user_id' => 1,
             'telephone' => '081298387456'
         ]);
     }

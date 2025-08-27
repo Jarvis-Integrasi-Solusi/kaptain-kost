@@ -16,8 +16,6 @@ class RoomCategorySeeder extends Seeder
             'name' => 'Room E',
             'company_id' => 1,
             'management_fee' => 500000,
-            'electricity_bill_fee' => 200000,
-            'water_bill_fee' => 100000,
             'monthly_rental_fee' => 3000000,
             'deposit_fee' => 1000000,
         ]);
@@ -26,8 +24,6 @@ class RoomCategorySeeder extends Seeder
             'name' => 'Room F',
             'company_id' => 1,
             'management_fee' => 600000,
-            'electricity_bill_fee' => 250000,
-            'water_bill_fee' => 120000,
             'monthly_rental_fee' => 4000000,
             'deposit_fee' => 1500000,
         ]);
@@ -36,8 +32,6 @@ class RoomCategorySeeder extends Seeder
             'name' => 'Room G',
             'company_id' => 1,
             'management_fee' => 800000,
-            'electricity_bill_fee' => 300000,
-            'water_bill_fee' => 150000,
             'monthly_rental_fee' => 6000000,
             'deposit_fee' => 2000000,
         ]);
@@ -46,8 +40,6 @@ class RoomCategorySeeder extends Seeder
             'name' => 'Room H',
             'company_id' => 1,
             'management_fee' => 1000000,
-            'electricity_bill_fee' => 350000,
-            'water_bill_fee' => 200000,
             'monthly_rental_fee' => 8000000,
             'deposit_fee' => 2500000,
         ]);

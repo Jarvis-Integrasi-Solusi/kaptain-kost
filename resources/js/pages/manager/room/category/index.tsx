@@ -27,8 +27,6 @@ interface RoomCategory {
     monthly_rental_fee: number;
     deposit_fee: number;
     management_fee: number;
-    water_bill_fee: number;
-    electricity_bill_fee: number;
     created_at?: string;
     updated_at?: string;
 }
@@ -73,9 +71,7 @@ export default function RoomCategoryList() {
                 category.name?.toLowerCase().includes(searchTerm) ||
                 category.monthly_rental_fee?.toString().includes(searchTerm) ||
                 category.deposit_fee?.toString().includes(searchTerm) ||
-                category.management_fee?.toString().includes(searchTerm) ||
-                category.water_bill_fee?.toString().includes(searchTerm) ||
-                category.electricity_bill_fee?.toString().includes(searchTerm)
+                category.management_fee?.toString().includes(searchTerm)
             );
         });
 
@@ -207,8 +203,6 @@ export default function RoomCategoryList() {
                                         <TableHead>Monthly Fee</TableHead>
                                         <TableHead>Deposit Fee</TableHead>
                                         <TableHead>Management Fee</TableHead>
-                                        <TableHead>Water Bill Fee</TableHead>
-                                        <TableHead>Electricity Bill Fee</TableHead>
                                         <TableHead className="w-[100px]">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -226,8 +220,6 @@ export default function RoomCategoryList() {
                                                 <TableCell>{formatCurrency(category.monthly_rental_fee)}</TableCell>
                                                 <TableCell>{formatCurrency(category.deposit_fee)}</TableCell>
                                                 <TableCell>{formatCurrency(category.management_fee)}</TableCell>
-                                                <TableCell>{formatCurrency(category.water_bill_fee)}</TableCell>
-                                                <TableCell>{formatCurrency(category.electricity_bill_fee)}</TableCell>
                                                 <TableCell>
                                                     <DropdownMenu>
                                                         <DropdownMenuTrigger asChild>
