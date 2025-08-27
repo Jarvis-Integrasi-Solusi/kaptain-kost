@@ -14,8 +14,6 @@ return new class extends Migration
         Schema::create('rooms', function (Blueprint $table) {
             $table->id();
             $table->foreignId('company_id')->nullable()->constrained('companies')->onDelete('set null');
-            $table->foreignId('occupancy_status_id')->constrained('occupancy_statuses');
-            $table->foreignId('condition_status_id')->constrained('condition_statuses');
             $table->foreignId('room_category_id')->constrained('room_categories');
             $table->string('name');
             $table->string('image')->nullable();
