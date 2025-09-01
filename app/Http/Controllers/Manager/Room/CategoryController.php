@@ -137,7 +137,24 @@ class CategoryController extends Controller
      */
     public function show(string $id)
     {
-        //
+        try {
+            $user = Auth::user();
+            
+            $category = RoomCategory::where('id', $id)
+                ->where('company_id', $user->company_id)
+                ->firstOrFail();
+
+            return Inertia::render('manager/room/category/show', [
+                'category' => $category
+            ]);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return redirect()->route('manager.room.category.index')
+                ->with('error', [
+                    'title' => 'Category Not Found',
+                    'message' => 'The specified room category does not exist or you do not have permission to access it.'
+                ]);
+        }
     }
 
     /**

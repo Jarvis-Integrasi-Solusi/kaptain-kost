@@ -29,18 +29,18 @@ class UserSeeder extends Seeder
             'role' => 'operator',
             'email_verified_at' => now(),
             'company_id' => 1
-
         ]);
 
-        // Tenant
-        User::create([
-            'name' => 'Tenant User',
-            'email' => 'tenant@example.com',
-            'password' => Hash::make('password'),
-            'role' => 'tenant',
-            'email_verified_at' => now(),
-            'company_id' => 1
-
-        ]);
+        // 10 Tenant Users
+        for ($i = 1; $i <= 10; $i++) {
+            User::create([
+                'name' => "Tenant User {$i}",
+                'email' => "tenant{$i}@example.com",
+                'password' => Hash::make('password'),
+                'role' => 'tenant',
+                'email_verified_at' => now(),
+                'company_id' => 1
+            ]);
+        }
     }
 }

@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             RoomSeeder::class,
             RentalPeriodSeeder::class,
             PaymentTypeSeeder::class,
+            RentalSeeder::class,
         ]);
     }
 }

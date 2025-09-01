@@ -6,15 +6,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type PageProps } from '@/types';
+import { RentalPeriod } from '@/types/rental-period';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight, Eye, MoreHorizontal, Search, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
-interface RentalPeriod {
-    id: number;
-    name: string;
-    month: number;
-}
+
 
 interface RentalPeriodPageProps extends PageProps {
     rental_periods: RentalPeriod[];

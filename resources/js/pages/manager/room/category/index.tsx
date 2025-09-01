@@ -16,20 +16,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type PageProps } from '@/types';
+import { RoomCategory } from '@/types/room-category';
 import { formatCurrency } from '@/utils/format';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight, Edit, Eye, MoreHorizontal, Plus, Search, Trash2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
-interface RoomCategory {
-    id: number;
-    name: string;
-    monthly_rental_fee: number;
-    deposit_fee: number;
-    management_fee: number;
-    created_at?: string;
-    updated_at?: string;
-}
+
 
 interface RoomCategoryPageProps extends PageProps {
     categories: RoomCategory[];

@@ -6,16 +6,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type PageProps } from '@/types';
+import { OccupancyStatus } from '@/types/occupancy-status';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight, Eye, MoreHorizontal, Search, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
-interface OccupancyStatus {
-    id: number;
-    name: string;
-    created_at?: string;
-    updated_at?: string;
-}
 
 interface OccupancyStatusPageProps extends PageProps {
     occupancy_statuses: OccupancyStatus[];

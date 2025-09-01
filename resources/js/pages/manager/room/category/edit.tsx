@@ -5,20 +5,11 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type PageProps } from '@/types';
+import { RoomCategory } from '@/types/room-category';
 import { cleanCurrencyInput, formatCurrency, parseCurrency } from '@/utils/format';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
-
-interface RoomCategory {
-    id: number;
-    name: string;
-    monthly_rental_fee: number;
-    deposit_fee: number;
-    management_fee: number;
-    created_at: string;
-    updated_at: string;
-}
 
 interface EditRoomCategoryPageProps extends PageProps {
     roomCategory: RoomCategory;
@@ -85,6 +76,7 @@ export default function EditRoomCategory() {
             newDisplayValues[fieldKey] = value > 0 ? formatCurrency(value, { showSymbol: false }) : '';
         });
         setDisplayValues(newDisplayValues);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Calculate totals
@@ -272,11 +264,6 @@ export default function EditRoomCategory() {
                                             <span className="text-lg">{formatCurrency(totals.initialTotal)}</span>
                                         </div>
                                     </div>
-                                </div>
-
-                                <Separator />
-                                <div className="text-xs text-muted-foreground">
-                                    <p>Last updated: {new Date(roomCategory.updated_at).toLocaleDateString()}</p>
                                 </div>
                             </CardContent>
                         </Card>

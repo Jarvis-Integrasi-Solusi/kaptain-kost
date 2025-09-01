@@ -17,28 +17,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type PageProps } from '@/types';
+import { Room } from '@/types/room';
 import { formatCurrency } from '@/utils/format';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight, Edit, Eye, Filter, MoreHorizontal, Plus, Search, Trash2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
-
-interface RoomCategory {
-    id: number;
-    name: string;
-    monthly_rental_fee: number;
-    deposit_fee: number;
-    management_fee: number;
-}
-
-interface Room {
-    id: number;
-    name: string;
-    description?: string;
-    image?: string;
-    room_category: RoomCategory;
-    created_at?: string;
-    updated_at?: string;
-}
 
 interface RoomPageProps extends PageProps {
     rooms: Room[];
@@ -230,57 +213,66 @@ export default function RoomList() {
                         </div>
 
                         {/* Search and Filter Bar */}
-                        <div className="flex flex-col gap-4 pt-4 sm:flex-row">
-                            <div className="relative max-w-sm flex-1">
-                                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                <Input
-                                    placeholder="Search rooms..."
-                                    value={search}
-                                    onChange={(e) => handleSearchChange(e.target.value)}
-                                    className="pl-10"
-                                />
-                            </div>
-
-                            <div className="flex gap-2">
-                                {/* Category Filter */}
-                                <div className="relative">
-                                    <Filter className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                    <Select value={categoryFilter} onValueChange={handleCategoryFilterChange}>
-                                        <SelectTrigger className="w-[150px] pl-10">
-                                            <SelectValue placeholder="Category" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {availableCategories.map((category) => (
-                                                <SelectItem key={category?.id} value={category?.id.toString()}>
-                                                    {category?.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                        <div className="flex flex-col gap-4 pt-4">
+                            {/* Search and Filters Row */}
+                            <div className="flex flex-col gap-4 lg:flex-row lg:items-end">
+                                {/* Search Input - Full width on mobile, flexible on desktop */}
+                                <div className="relative flex-1 lg:max-w-sm">
+                                    <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Search rooms..."
+                                        value={search}
+                                        onChange={(e) => handleSearchChange(e.target.value)}
+                                        className="pl-10"
+                                    />
                                 </div>
 
-                                {/* Clear Filter Buttons */}
-                                {search && (
-                                    <Button type="button" variant="outline" size="sm" onClick={clearSearch}>
-                                        <X className="mr-2 h-4 w-4" />
-                                        Clear Search
-                                    </Button>
-                                )}
-
-                                {categoryFilter && (
-                                    <Button type="button" variant="outline" size="sm" onClick={clearCategoryFilter}>
-                                        <X className="mr-2 h-4 w-4" />
-                                        Clear Category
-                                    </Button>
-                                )}
-
-                                {activeFiltersCount > 1 && (
-                                    <Button type="button" variant="outline" size="sm" onClick={clearAllFilters}>
-                                        <X className="mr-2 h-4 w-4" />
-                                        Clear All
-                                    </Button>
-                                )}
+                                {/* Filters - Full width on mobile, auto width on desktop */}
+                                <div className="flex gap-2">
+                                    {/* Category Filter */}
+                                    <div className="relative">
+                                        <Filter className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                        <Select value={categoryFilter} onValueChange={handleCategoryFilterChange}>
+                                            <SelectTrigger className="w-full pl-10 lg:w-[150px]">
+                                                <SelectValue placeholder="Category" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {availableCategories.map((category) => (
+                                                    <SelectItem key={category?.id} value={category?.id.toString()}>
+                                                        {category?.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
                             </div>
+
+                            {/* Clear Filter Buttons */}
+                            {activeFiltersCount > 0 && (
+                                <div className="flex flex-wrap gap-2">
+                                    {search && (
+                                        <Button type="button" variant="outline" size="sm" onClick={clearSearch}>
+                                            <X className="mr-2 h-4 w-4" />
+                                            Clear Search
+                                        </Button>
+                                    )}
+
+                                    {categoryFilter && (
+                                        <Button type="button" variant="outline" size="sm" onClick={clearCategoryFilter}>
+                                            <X className="mr-2 h-4 w-4" />
+                                            Clear Category
+                                        </Button>
+                                    )}
+
+                                    {activeFiltersCount > 1 && (
+                                        <Button type="button" variant="outline" size="sm" onClick={clearAllFilters}>
+                                            <X className="mr-2 h-4 w-4" />
+                                            Clear All
+                                        </Button>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </CardHeader>
 

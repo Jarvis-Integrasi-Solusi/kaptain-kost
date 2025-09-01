@@ -21,8 +21,6 @@ return new class extends Migration
             $table->date('entry_date');
             $table->date('exit_date')->nullable();
             $table->integer('total_price');
-            $table->enum('payment_status', ['paid', 'in_progress', 'unpaid']);
-            $table->enum('payment_type', ['cash', 'monthly']);
             $table->timestamps();
         });
     }

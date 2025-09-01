@@ -53,12 +53,12 @@ export default function NotificationToast() {
         if (newNotifications.length > 0) {
             setNotifications(prev => [...prev, ...newNotifications]);
 
-            // auto dismiss after 3 seconds
-            newNotifications.forEach(notification => {
-                setTimeout(() => {
-                    setNotifications(prev => prev.filter(n => n.id !== notification.id));
-                }, 3000);
-            });
+        // auto dismiss after 3 seconds
+        newNotifications.forEach(notification => {
+            setTimeout(() => {
+                setNotifications(prev => prev.filter(n => n.id !== notification.id));
+            }, 3000);
+        });
         }
     }, [flash]);
 

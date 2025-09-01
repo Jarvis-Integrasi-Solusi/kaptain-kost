@@ -6,16 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type PageProps } from '@/types';
+import { ConditionStatus } from '@/types/condition-status';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight, Eye, MoreHorizontal, Search, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
-
-interface ConditionStatus {
-    id: number;
-    name: string;
-    created_at?: string;
-    updated_at?: string;
-}
 
 interface ConditionStatusPageProps extends PageProps {
     condition_statuses: ConditionStatus[];

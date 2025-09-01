@@ -6,14 +6,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type PageProps } from '@/types';
+import { PaymentType } from '@/types/payment-type';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight, Eye, MoreHorizontal, Search, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
-interface PaymentType {
-    id: number;
-    name: string;
-}
+
 
 interface PaymentTypePageProps extends PageProps {
     payment_types: PaymentType[];

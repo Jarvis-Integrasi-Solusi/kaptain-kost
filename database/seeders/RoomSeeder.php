@@ -40,42 +40,42 @@ class RoomSeeder extends Seeder
             ],
             [
                 'company_id' => 1,
-                'room_category_id' => 3,
+                'room_category_id' => 1,
                 'name' => 'Standard Room 1',
                 'image' => 'images/room/dummy-room.jpg',
                 'description' => 'Cozy standard room at affordable price.'
             ],
             [
                 'company_id' => 1,
-                'room_category_id' => 3,
+                'room_category_id' => 1,
                 'name' => 'Standard Room 2',
                 'image' => 'images/room/dummy-room.jpg',
                 'description' => 'Standard room with essential amenities.'
             ],
             [
                 'company_id' => 1,
-                'room_category_id' => 3,
+                'room_category_id' => 2,
                 'name' => 'Standard Room 3',
                 'image' => 'images/room/dummy-room.jpg',
                 'description' => 'Small but comfortable room for solo travelers.'
             ],
             [
                 'company_id' => 1,
-                'room_category_id' => 4,
+                'room_category_id' => 2,
                 'name' => 'Suite Room 1',
                 'image' => 'images/room/dummy-room.jpg',
                 'description' => 'Luxury suite room with living area.'
             ],
             [
                 'company_id' => 1,
-                'room_category_id' => 4,
+                'room_category_id' => 1,
                 'name' => 'Suite Room 2',
                 'image' => 'images/room/dummy-room.jpg',
                 'description' => 'Premium suite with full amenities.'
             ],
             [
                 'company_id' => 1,
-                'room_category_id' => 4,
+                'room_category_id' => 2,
                 'name' => 'Suite Room 3',
                 'image' => 'images/room/dummy-room.jpg',
                 'description' => 'Exclusive suite with private balcony.'

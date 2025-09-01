@@ -1,18 +1,6 @@
 // resources/js/types/index.d.ts
 import { Config } from 'ziggy-js';
-
-export interface User {
-    id: number;
-    name: string;
-    email: string;
-    image?: string;
-    email_verified_at?: string;
-    company?: {
-        id: number;
-        name: string;
-    };
-    role: 'manager' | 'operator' | 'tenant';
-}
+import { User } from './user';
 
 export interface NavItem {
     title: string;

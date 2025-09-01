@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Manager\Room;
 
 use App\Http\Controllers\Controller;
+use App\Models\Rental;
 use App\Models\Room;
 use App\Models\RoomCategory;
 use Illuminate\Http\Request;
@@ -169,9 +170,6 @@ class RoomController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
         try {
@@ -182,8 +180,20 @@ class RoomController extends Controller
                 ->where('company_id', $user->company_id)
                 ->firstOrFail();
 
+            $rentals = Rental::with([
+                'user:id,name,email',
+                'room:id,name',
+                'room.roomCategory:id,name',
+                'paymentType:id,name',
+                'rentalPeriod:id,month'
+            ])
+            ->where('room_id', $room->id)
+            ->orderBy('entry_date', 'desc')
+            ->get();
+
             return Inertia::render('manager/room/show', [
-                'room' => $room
+                'room' => $room,
+                'rentals' => $rentals
             ]);
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {

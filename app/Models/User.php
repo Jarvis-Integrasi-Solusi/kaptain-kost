@@ -24,6 +24,8 @@ class User extends Authenticatable
         'role',
         'address',
         'telephone',
+        'username',
+        'gender',
         'guardian_name',
         'guardian_telephone',
         'image',
@@ -108,4 +110,7 @@ class User extends Authenticatable
     {
         return $this->hasManyThrough(TenantService::class, Rental::class, 'user_id', 'rental_id');
     }
+
+
+    
 }

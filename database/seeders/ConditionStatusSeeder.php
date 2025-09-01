@@ -14,7 +14,7 @@ class ConditionStatusSeeder extends Seeder
     public function run(): void
     {
         ConditionStatus::insert([
-            ['name' => 'Good'],
+            ['name' => 'Clean'],
             ['name' => 'In Maintenance'],
             ['name' => 'Damaged'],
             ['name' => 'Dirty']

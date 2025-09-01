@@ -17,8 +17,9 @@ return new class extends Migration
             $table->date('billing_date');
             $table->date('paid_at')->nullable();
             $table->integer('amount');
-            $table->enum('category', ['rental_fee', 'deposit_fee', 'utility_fee']);
-            $table->enum('payment_status', ['paid', 'in_progress', 'unpaid']);
+            $table->enum('category', ['rental_fee', 'deposit_fee', 'management_fee']);
+            $table->enum('payment_status', ['paid', 'unpaid']);
+            $table->enum('payment_method', ['cash', 'payment_gateway'])->nullable();
             $table->timestamps();
         });
     }

@@ -3,22 +3,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavGroup, type PageProps } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import {
-    BarChart3,
-    BedDouble,
-    BookUser,
-    CalendarRange,
-    ChartBarStacked,
-    ClipboardCopy,
-    CreditCard,
-    DoorOpen,
-    FileText,
-    LayoutGrid,
-    ShieldCheck,
-    User,
-    UserCog,
-    Wrench,
-} from 'lucide-react';
+import { BarChart3, BedDouble, BookUser, ChartBarStacked, ClipboardCopy, FileText, LayoutGrid, User, UserCog, Wrench } from 'lucide-react';
 import AppLogo from './app-logo';
 
 // Manager Navigation
@@ -43,17 +28,17 @@ const managerNavGroups: NavGroup[] = [
         items: [
             {
                 title: 'Manager',
-                href: '/manager/users/managers',
+                href: '/manager/user/manager',
                 icon: UserCog,
             },
             {
                 title: 'Operator',
-                href: '/manager/users/operators',
+                href: '/manager/user/operator',
                 icon: Wrench,
             },
             {
                 title: 'Tenant',
-                href: '/manager/users/tenants',
+                href: '/manager/user/tenant',
                 icon: User,
             },
         ],
@@ -71,16 +56,16 @@ const managerNavGroups: NavGroup[] = [
                 href: '/manager/room/category',
                 icon: ChartBarStacked,
             },
-            {
-                title: 'Occupancy Status',
-                href: '/manager/room/occupancy-status',
-                icon: DoorOpen,
-            },
-            {
-                title: 'Condition Status',
-                href: '/manager/room/condition-status',
-                icon: ShieldCheck,
-            },
+            // {
+            //     title: 'Occupancy Status',
+            //     href: '/manager/room/occupancy-status',
+            //     icon: DoorOpen,
+            // },
+            // {
+            //     title: 'Condition Status',
+            //     href: '/manager/room/condition-status',
+            //     icon: ShieldCheck,
+            // },
         ],
     },
     {
@@ -91,16 +76,16 @@ const managerNavGroups: NavGroup[] = [
                 href: '/manager/rental',
                 icon: ClipboardCopy,
             },
-            {
-                title: 'Payment Type',
-                href: '/manager/rental/payment-type',
-                icon: CreditCard,
-            },
-            {
-                title: 'Rental Period',
-                href: '/manager/rental/period',
-                icon: CalendarRange,
-            },
+            // {
+            //     title: 'Payment Type',
+            //     href: '/manager/rental/payment-type',
+            //     icon: CreditCard,
+            // },
+            // {
+            //     title: 'Rental Period',
+            //     href: '/manager/rental/period',
+            //     icon: CalendarRange,
+            // },
         ],
     },
 ];
