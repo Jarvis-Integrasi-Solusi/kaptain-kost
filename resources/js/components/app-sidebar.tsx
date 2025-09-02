@@ -3,26 +3,26 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavGroup, type PageProps } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { BarChart3, BedDouble, BookUser, ChartBarStacked, ClipboardCopy, FileText, LayoutGrid, User, UserCog, Wrench } from 'lucide-react';
+import { BarChart3, BedDouble, ChartBarStacked, ClipboardCopy, FileText, LayoutGrid, User, UserCog, Wrench } from 'lucide-react';
 import AppLogo from './app-logo';
 
 // Manager Navigation
 const managerNavGroups: NavGroup[] = [
-    {
-        title: 'Overview',
-        items: [
-            {
-                title: 'Dashboard',
-                href: '/manager/dashboard',
-                icon: LayoutGrid,
-            },
-            {
-                title: 'Booking Chart',
-                href: '/manager/booking-chart',
-                icon: BookUser,
-            },
-        ],
-    },
+    // {
+    //     title: 'Overview',
+    //     items: [
+    //         {
+    //             title: 'Dashboard',
+    //             href: '/manager/dashboard',
+    //             icon: LayoutGrid,
+    //         },
+    //         {
+    //             title: 'Booking Chart',
+    //             href: '/manager/booking-chart',
+    //             icon: BookUser,
+    //         },
+    //     ],
+    // },
     {
         title: 'Users ',
         items: [

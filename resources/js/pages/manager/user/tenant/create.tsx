@@ -183,7 +183,8 @@ export default function CreateTenant() {
                                             </Label>
                                             <Input
                                                 id="telephone"
-                                                type="tel"
+                                                inputMode="numeric"
+                                                type="number"
                                                 value={data.telephone}
                                                 onChange={(e) => setData('telephone', e.target.value)}
                                                 className={cn(errors.telephone && 'border-red-500')}
@@ -267,7 +268,7 @@ export default function CreateTenant() {
                                     <div className="grid gap-4 sm:grid-cols-2">
                                         <div className="space-y-2">
                                             <Label htmlFor="guardian_name" className="text-sm font-medium">
-                                                Guardian Name
+                                                Emergency Contact
                                             </Label>
                                             <Input
                                                 id="guardian_name"
@@ -275,22 +276,23 @@ export default function CreateTenant() {
                                                 value={data.guardian_name}
                                                 onChange={(e) => setData('guardian_name', e.target.value)}
                                                 className={cn(errors.guardian_name && 'border-red-500')}
-                                                placeholder="Enter guardian name"
+                                                placeholder="Enter emergency contact name"
                                             />
                                             {errors.guardian_name && <p className="text-sm text-red-500">{errors.guardian_name}</p>}
                                         </div>
 
                                         <div className="space-y-2">
                                             <Label htmlFor="guardian_telephone" className="text-sm font-medium">
-                                                Guardian Telephone
+                                                Emergency Contact Telephone
                                             </Label>
                                             <Input
                                                 id="guardian_telephone"
-                                                type="tel"
+                                                inputMode="numeric"
+                                                type="number"
                                                 value={data.guardian_telephone}
                                                 onChange={(e) => setData('guardian_telephone', e.target.value)}
                                                 className={cn(errors.guardian_telephone && 'border-red-500')}
-                                                placeholder="Enter guardian telephone"
+                                                placeholder="Enter emergency contact telephone"
                                             />
                                             {errors.guardian_telephone && <p className="text-sm text-red-500">{errors.guardian_telephone}</p>}
                                         </div>
@@ -315,7 +317,6 @@ export default function CreateTenant() {
                     <Card className="self-start lg:col-span-1">
                         <CardHeader>
                             <CardTitle>Profile Image</CardTitle>
-                            <CardDescription>Upload a profile image for the tenant</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-2">

@@ -18,7 +18,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type PageProps } from '@/types';
 import { User } from '@/types/user';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { ChevronLeft, ChevronRight, Edit, Eye, MoreHorizontal, Plus, Search, Trash2, User as UserIcon, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Edit, Eye, MoreHorizontal, Plus, Search, Trash2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 interface TenantPageProps extends PageProps {
@@ -209,7 +209,6 @@ export default function TenantList() {
                                         <TableRow>
                                             <TableCell colSpan={6} className="h-24 text-center">
                                                 <div className="flex flex-col items-center gap-2">
-                                                    <UserIcon className="h-8 w-8 text-muted-foreground" />
                                                     <span>{search ? `No tenants found matching "${search}".` : 'No tenants found.'}</span>
                                                 </div>
                                             </TableCell>

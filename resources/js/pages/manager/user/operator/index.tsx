@@ -18,7 +18,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type PageProps } from '@/types';
 import { User } from '@/types/user';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { ChevronLeft, ChevronRight, Edit, Eye, MoreHorizontal, Plus, Search, Trash2, User as UserIcon, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Edit, Eye, MoreHorizontal, Plus, Search, Trash2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 interface OperatorPageProps extends PageProps {
@@ -144,7 +144,7 @@ export default function OperatorList() {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Tenants" />
+            <Head title="Operators" />
 
             <div className="flex h-full flex-1 flex-col gap-6 p-6">
                 <Card>
@@ -205,35 +205,34 @@ export default function OperatorList() {
                                         <TableRow>
                                             <TableCell colSpan={6} className="h-24 text-center">
                                                 <div className="flex flex-col items-center gap-2">
-                                                    <UserIcon className="h-8 w-8 text-muted-foreground" />
-                                                    <span>{search ? `No tenants found matching "${search}".` : 'No tenants found.'}</span>
+                                                    <span>{search ? `No Operator found matching "${search}".` : 'No Operators found.'}</span>
                                                 </div>
                                             </TableCell>
                                         </TableRow>
                                     ) : (
-                                        paginatedData.map((tenant) => (
-                                            <TableRow key={tenant.id}>
+                                        paginatedData.map((operator) => (
+                                            <TableRow key={operator.id}>
                                                 <TableCell className="font-medium">
                                                     <div className="flex items-center gap-2">
-                                                        {tenant.image ? (
+                                                        {operator.image ? (
                                                             <img
-                                                                src={`/storage/${tenant.image}`}
-                                                                alt={tenant.name}
+                                                                src={`/storage/${operator.image}`}
+                                                                alt={operator.name}
                                                                 className="h-8 w-8 rounded-full object-cover"
                                                             />
                                                         ) : (
                                                             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
                                                                 <span className="text-sm font-medium text-blue-600">
-                                                                    {tenant.name?.charAt(0).toUpperCase()}
+                                                                    {operator.name?.charAt(0).toUpperCase()}
                                                                 </span>
                                                             </div>
                                                         )}
-                                                        {tenant.name}
+                                                        {operator.name}
                                                     </div>
                                                 </TableCell>
-                                                <TableCell>{tenant.email}</TableCell>
-                                                <TableCell>{tenant.username || '-'}</TableCell>
-                                                <TableCell>{tenant.created_at ? formatDate(tenant.created_at) : '-'}</TableCell>
+                                                <TableCell>{operator.email}</TableCell>
+                                                <TableCell>{operator.username || '-'}</TableCell>
+                                                <TableCell>{operator.created_at ? formatDate(operator.created_at) : '-'}</TableCell>
                                                 <TableCell>
                                                     <DropdownMenu>
                                                         <DropdownMenuTrigger asChild>
@@ -244,18 +243,18 @@ export default function OperatorList() {
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
                                                             <DropdownMenuItem asChild>
-                                                                <Link href={`/manager/user/tenant/${tenant.id}`}>
+                                                                <Link href={`/manager/user/operator/${operator.id}`}>
                                                                     <Eye className="mr-2 h-4 w-4" />
                                                                     View
                                                                 </Link>
                                                             </DropdownMenuItem>
                                                             <DropdownMenuItem className="text-yellow-600" asChild>
-                                                                <Link href={`/manager/user/tenant/${tenant.id}/edit`}>
+                                                                <Link href={`/manager/user/operator/${operator.id}/edit`}>
                                                                     <Edit className="mr-2 h-4 w-4 text-yellow-600" />
                                                                     Edit
                                                                 </Link>
                                                             </DropdownMenuItem>
-                                                            <DropdownMenuItem className="text-red-600" onClick={() => setDeleteId(tenant.id)}>
+                                                            <DropdownMenuItem className="text-red-600" onClick={() => setDeleteId(operator.id)}>
                                                                 <Trash2 className="mr-2 h-4 w-4 text-red-600" />
                                                                 Delete
                                                             </DropdownMenuItem>

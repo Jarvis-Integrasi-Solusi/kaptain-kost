@@ -205,7 +205,8 @@ export default function EditTenant() {
                                             </Label>
                                             <Input
                                                 id="telephone"
-                                                type="tel"
+                                                inputMode="numeric"
+                                                type="number"
                                                 value={data.telephone}
                                                 onChange={(e) => setData('telephone', e.target.value)}
                                                 className={cn(errors.telephone && 'border-red-500')}
@@ -260,7 +261,7 @@ export default function EditTenant() {
                                                 value={data.guardian_name}
                                                 onChange={(e) => setData('guardian_name', e.target.value)}
                                                 className={cn(errors.guardian_name && 'border-red-500')}
-                                                placeholder="Enter guardian name"
+                                                placeholder="Enter emergency contact"
                                             />
                                             {errors.guardian_name && <p className="text-sm text-red-500">{errors.guardian_name}</p>}
                                         </div>
@@ -271,11 +272,12 @@ export default function EditTenant() {
                                             </Label>
                                             <Input
                                                 id="guardian_telephone"
-                                                type="tel"
+                                                inputMode="numeric"
+                                                type="number"
                                                 value={data.guardian_telephone}
                                                 onChange={(e) => setData('guardian_telephone', e.target.value)}
                                                 className={cn(errors.guardian_telephone && 'border-red-500')}
-                                                placeholder="Enter guardian phone"
+                                                placeholder="Enter emergency contact telephone"
                                             />
                                             {errors.guardian_telephone && <p className="text-sm text-red-500">{errors.guardian_telephone}</p>}
                                         </div>

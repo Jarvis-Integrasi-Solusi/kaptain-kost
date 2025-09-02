@@ -324,4 +324,46 @@ class TenantController extends Controller
         }
     }
 
+    public function destroy($id)
+    {
+        $user = Auth::user();
+
+        try {
+            // Find the tenant user
+            $tenant = User::where('company_id', $user->company_id)
+                ->where('role', 'tenant')
+                ->findOrFail($id);
+
+            // Check if tenant has any rentals
+            $rentalCount = Rental::where('user_id', $tenant->id)->count();
+            if ($rentalCount > 0) {
+                return redirect()->route('manager.user.tenant.index')
+                    ->with('error', [
+                        'title' => 'Cannot Delete Tenant!',
+                        'message' => "Tenant '{$tenant->name}' cannot be deleted because they have rentals."
+                    ]);
+            }
+
+            // Delete tenant's image if exists
+            if ($tenant->image && Storage::disk('public')->exists($tenant->image)) {
+                Storage::disk('public')->delete($tenant->image);
+            }
+
+            // Delete the tenant
+            $tenant->delete();
+
+            return redirect()->route('manager.user.tenant.index')
+                ->with('success', [
+                    'title' => 'Tenant Deleted!',
+                    'message' => "Tenant account for '{$tenant->name}' has been deleted successfully."
+                ]);
+
+        } catch (\Exception $e) {
+            return redirect()->route('manager.user.tenant.index')
+                ->with('error', [
+                    'title' => 'Error!',
+                    'message' => 'An error occurred while deleting the tenant account. Please try again.'
+                ]);
+        }
+    }
 }

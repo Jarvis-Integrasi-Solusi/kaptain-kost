@@ -223,12 +223,12 @@ export default function ShowTenant() {
 
                                     <div className="grid gap-4 sm:grid-cols-2">
                                         <div className="space-y-2">
-                                            <Label className="text-sm font-medium">Guardian Name</Label>
+                                            <Label className="text-sm font-medium">Emergency Contact</Label>
                                             <Input value={tenant.guardian_name || '-'} disabled className="bg-muted" />
                                         </div>
 
                                         <div className="space-y-2">
-                                            <Label className="text-sm font-medium">Guardian Telephone</Label>
+                                            <Label className="text-sm font-medium">Emergency Contact Telephone</Label>
                                             <Input value={tenant.guardian_telephone || '-'} disabled className="bg-muted" />
                                         </div>
                                     </div>
@@ -243,7 +243,6 @@ export default function ShowTenant() {
                         <Card>
                             <CardHeader>
                                 <CardTitle>Profile Image</CardTitle>
-                                <CardDescription>Tenant profile picture</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <div className="flex justify-center">
