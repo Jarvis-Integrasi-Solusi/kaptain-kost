@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -10,15 +11,19 @@ import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type PageProps } from '@/types';
 import { Rental } from '@/types/rental';
+import { Room } from '@/types/room';
 import { formatCurrency } from '@/utils/format';
 import { Head, router, usePage } from '@inertiajs/react';
-import { ChevronLeft, ChevronRight, Edit, Eye, Search } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Edit, Eye, ImageIcon, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { Room } from '@/types/room';
-
 
 interface RoomShowPageProps extends PageProps {
-    room: Room;
+    room: Room & {
+        room_images?: Array<{
+            id: number;
+            image: string;
+        }>;
+    };
     rentals: Rental[];
     flash?: {
         success?: {
@@ -146,6 +151,27 @@ export default function ShowRoom() {
         return <Badge variant="destructive">{type}</Badge>;
     };
 
+    // Prepare images for display (handle both single image and multiple images)
+    const displayImages = useMemo(() => {
+        if (room.room_images && room.room_images.length > 0) {
+            return room.room_images.map((img) => ({
+                id: img.id,
+                url: `/storage/${img.image}`,
+                alt: `${room.name} - Image ${img.id}`,
+            }));
+        } else if (room.image) {
+            // Fallback to single image if room_images is not available
+            return [
+                {
+                    id: 1,
+                    url: `/storage/${room.image}`,
+                    alt: room.name,
+                },
+            ];
+        }
+        return [];
+    }, [room.room_images, room.image, room.name]);
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Room - ${room.name}`} />
@@ -207,25 +233,63 @@ export default function ShowRoom() {
                         </CardContent>
                     </Card>
 
-                    {/* Room Image */}
+                    {/* Room Images Card */}
                     <Card className="lg:col-span-1">
                         <CardHeader>
-                            <CardTitle>Room Image</CardTitle>
+                            <CardTitle>Room Images</CardTitle>
+                            <CardDescription>
+                                {displayImages.length > 0
+                                    ? `${displayImages.length} image${displayImages.length > 1 ? 's' : ''}`
+                                    : 'No images available'}
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            {room.image ? (
+                            {displayImages.length > 0 ? (
                                 <div className="relative">
-                                    <img
-                                        src={`/storage/${room.image}`}
-                                        alt={room.name}
-                                        className="h-auto w-full rounded-lg border object-contain"
-                                        style={{ maxHeight: '400px' }}
-                                    />
+                                    <Carousel className="w-full">
+                                        <CarouselContent>
+                                            {displayImages.map((image) => (
+                                                <CarouselItem key={`room-image-${image.id}`}>
+                                                    <div className="relative">
+                                                        <img src={image.url} alt={image.alt} className="h-80 w-full rounded-lg border object-cover" />
+                                                        {/* Image counter */}
+                                                        {displayImages.length > 1 && (
+                                                            <div className="absolute right-2 bottom-2">
+                                                                <span className="rounded bg-black/70 px-2 py-1 text-xs font-medium text-white">
+                                                                    {displayImages.findIndex((img) => img.id === image.id) + 1} /{' '}
+                                                                    {displayImages.length}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </CarouselItem>
+                                            ))}
+                                        </CarouselContent>
+
+                                        {/* Show navigation arrows only if there are multiple images */}
+                                        {displayImages.length > 1 && (
+                                            <>
+                                                <CarouselPrevious className="absolute top-1/2 left-2 -translate-y-1/2" />
+                                                <CarouselNext className="absolute top-1/2 right-2 -translate-y-1/2" />
+                                            </>
+                                        )}
+                                    </Carousel>
+
+                                    {/* Image indicators for multiple images */}
+                                    {displayImages.length > 1 && (
+                                        <div className="flex justify-center space-x-2 pt-3">
+                                            {displayImages.map((_, index) => (
+                                                <div key={index} className="h-2 w-2 rounded-full bg-muted-foreground/30" />
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             ) : (
-                                <div className="flex h-64 w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/10">
+                                <div className="flex h-80 w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/10">
+                                    <ImageIcon className="h-12 w-12 text-muted-foreground/50" />
                                     <div className="text-center text-sm text-muted-foreground">
-                                        <p>No image uploaded</p>
+                                        <p className="font-medium">No images available</p>
+                                        <p>This room doesn't have any images uploaded</p>
                                     </div>
                                 </div>
                             )}

@@ -218,7 +218,7 @@ export default function RoomList() {
     const getRoomStatusBadge = (status?: string) => {
         const normalizedStatus = status?.toLowerCase();
 
-        if (normalizedStatus === 'reserved') {
+        if (normalizedStatus === 'booked') {
             return <Badge variant="warning">{status}</Badge>;
         } else if (normalizedStatus === 'occupied') {
             return <Badge variant="info">{status}</Badge>;
@@ -350,7 +350,7 @@ export default function RoomList() {
                                         <TableHead>Monthly Fee</TableHead>
                                         <TableHead>Occupancy</TableHead>
                                         {/* <TableHead>Condition</TableHead> */}
-                                        <TableHead>Description</TableHead>
+                                        {/* <TableHead>Description</TableHead> */}
                                         <TableHead className="w-[100px]">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -384,11 +384,11 @@ export default function RoomList() {
                                                 {/* <TableCell>
                                                     <Badge variant="success">clean</Badge>
                                                 </TableCell> */}
-                                                <TableCell className="max-w-[150px]">
+                                                {/* <TableCell className="max-w-[150px]">
                                                     <div className="truncate" title={room.description}>
                                                         {room.description || '-'}
                                                     </div>
-                                                </TableCell>
+                                                </TableCell> */}
                                                 <TableCell>
                                                     <DropdownMenu>
                                                         <DropdownMenuTrigger asChild>

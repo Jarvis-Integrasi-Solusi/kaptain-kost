@@ -5,10 +5,13 @@ namespace App\Http\Controllers\Manager\Room;
 use App\Http\Controllers\Controller;
 use App\Models\Rental;
 use App\Models\Room;
+use App\Models\RoomImage;
 use App\Models\RoomCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Illuminate\Validation\ValidationException;
 
@@ -19,7 +22,7 @@ class RoomController extends Controller
     {
         $user = Auth::user();
         
-        $allRooms = Room::with('roomCategory')
+        $allRooms = Room::with(['roomCategory', 'roomImages'])
             ->where('company_id', $user->company_id)
             ->orderBy('created_at', 'desc')
             ->get();
@@ -68,18 +71,23 @@ class RoomController extends Controller
                     'string',
                     'max:1000'
                 ],
-                'image' => [
+                'images' => [
                     'nullable',
+                    'array',
+                    'max:3' //
+                ],
+                'images.*' => [
                     'image',
                     'mimes:jpeg,png,jpg,gif',
-                    'max:2048' // 2MB max
+                    'max:2048' 
                 ],
             ], [
                 'name.max' => 'Room name cannot exceed 255 characters.',
                 'description.max' => 'Description cannot exceed 1000 characters.',
-                'image.image' => 'The file must be an image.',
-                'image.mimes' => 'The image must be a file of type: jpeg, png, jpg, gif.',
-                'image.max' => 'The image may not be greater than 2MB.',
+                'images.max' => 'Maximum 3 images allowed.',
+                'images.*.image' => 'Each file must be an image.',
+                'images.*.mimes' => 'Each image must be a file of type: jpeg, png, jpg.',
+                'images.*.max' => 'Each image may not be greater than 2MB.',
             ]);
 
             // Verify the category belongs to the user's company
@@ -96,11 +104,7 @@ class RoomController extends Controller
                     ->withInput();
             }
 
-            // Handle image upload
-            $imagePath = null;
-            if ($request->hasFile('image')) {
-                $imagePath = $request->file('image')->store('images/room', 'public');
-            }
+            DB::beginTransaction();
 
             // Create the room
             $room = Room::create([
@@ -108,8 +112,23 @@ class RoomController extends Controller
                 'room_category_id' => $validated['room_category_id'],
                 'name' => $validated['name'],
                 'description' => $validated['description'],
-                'image' => $imagePath,
             ]);
+
+            // Handle multiple image uploads
+            if ($request->has('images') && is_array($request->images)) {
+                foreach ($request->images as $image) {
+                    if ($image) {
+                        $imagePath = $image->store('images/room', 'public');
+                        
+                        RoomImage::create([
+                            'room_id' => $room->id,
+                            'image' => $imagePath,
+                        ]);
+                    }
+                }
+            }
+
+            DB::commit();
 
             return redirect()->route('manager.room.index')
                 ->with('success', [
@@ -118,10 +137,12 @@ class RoomController extends Controller
                 ]);
 
         } catch (ValidationException $e) {
+            DB::rollBack();
             return back()
                 ->withErrors($e->errors())
                 ->withInput();
         } catch (\Exception $e) {
+            DB::rollBack();
 
             return back()
                 ->with('error', [
@@ -129,6 +150,42 @@ class RoomController extends Controller
                     'message' => 'An error occurred while creating the room. Please try again.'
                 ])
                 ->withInput();
+        }
+    }
+
+    public function show(string $id)
+    {
+        try {
+            $user = Auth::user();
+            
+            $room = Room::with(['roomCategory', 'roomImages'])
+                ->where('id', $id)
+                ->where('company_id', $user->company_id)
+                ->firstOrFail();
+
+            $rentals = Rental::with([
+                'user:id,name,email',
+                'room:id,name',
+                'room.roomCategory:id,name',
+                'paymentType:id,name',
+                'rentalPeriod:id,month'
+            ])
+            ->where('room_id', $room->id)
+            ->orderBy('entry_date', 'desc')
+            ->get();
+
+
+            return Inertia::render('manager/room/show', [
+                'room' => $room,
+                'rentals' => $rentals
+            ]);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return redirect()->route('manager.room.index')
+                ->with('error', [
+                    'title' => 'Room Not Found',
+                    'message' => 'The specified room does not exist or you do not have permission to access it.'
+                ]);
         }
     }
 
@@ -141,7 +198,7 @@ class RoomController extends Controller
             $user = Auth::user();
             
             // Find the room for the current user's company
-            $room = Room::with('roomCategory')
+            $room = Room::with(['roomCategory', 'roomImages'])
                 ->where('id', $id)
                 ->where('company_id', $user->company_id)
                 ->firstOrFail();
@@ -170,40 +227,7 @@ class RoomController extends Controller
         }
     }
 
-    public function show(string $id)
-    {
-        try {
-            $user = Auth::user();
-            
-            $room = Room::with('roomCategory')
-                ->where('id', $id)
-                ->where('company_id', $user->company_id)
-                ->firstOrFail();
 
-            $rentals = Rental::with([
-                'user:id,name,email',
-                'room:id,name',
-                'room.roomCategory:id,name',
-                'paymentType:id,name',
-                'rentalPeriod:id,month'
-            ])
-            ->where('room_id', $room->id)
-            ->orderBy('entry_date', 'desc')
-            ->get();
-
-            return Inertia::render('manager/room/show', [
-                'room' => $room,
-                'rentals' => $rentals
-            ]);
-
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return redirect()->route('manager.room.index')
-                ->with('error', [
-                    'title' => 'Room Not Found',
-                    'message' => 'The specified room does not exist or you do not have permission to access it.'
-                ]);
-        }
-    }
 
     /**
      * Update the specified resource in storage.
@@ -214,7 +238,8 @@ class RoomController extends Controller
 
         try {
             // Find the room for the current user's company
-            $room = Room::where('id', $id)
+            $room = Room::with('roomImages')
+                ->where('id', $id)
                 ->where('company_id', $user->company_id)
                 ->firstOrFail();
 
@@ -236,18 +261,31 @@ class RoomController extends Controller
                     'string',
                     'max:1000'
                 ],
-                'image' => [
+                'images' => [
                     'nullable',
+                    'array',
+                    'max:3' // Maximum 3 images
+                ],
+                'images.*' => [
                     'image',
                     'mimes:jpeg,png,jpg,gif',
-                    'max:2048' // 2MB max
+                    'max:2048' // 2MB max per image
+                ],
+                'deleted_images' => [
+                    'nullable',
+                    'array'
+                ],
+                'deleted_images.*' => [
+                    'integer',
+                    'exists:room_images,id'
                 ],
             ], [
                 'name.max' => 'Room name cannot exceed 255 characters.',
                 'description.max' => 'Description cannot exceed 1000 characters.',
-                'image.image' => 'The file must be an image.',
-                'image.mimes' => 'The image must be a file of type: jpeg, png, jpg, gif.',
-                'image.max' => 'The image may not be greater than 2MB.',
+                'images.max' => 'Maximum 3 images allowed.',
+                'images.*.image' => 'Each file must be an image.',
+                'images.*.mimes' => 'Each image must be a file of type: jpeg, png, jpg, gif.',
+                'images.*.max' => 'Each image may not be greater than 2MB.',
             ]);
 
             // Verify the category belongs to the user's company
@@ -264,23 +302,60 @@ class RoomController extends Controller
                     ->withInput();
             }
 
-            // Handle image upload
-            $imagePath = $room->image; // Keep existing image by default
-            if ($request->hasFile('image')) {
-                // Delete old image if exists
-                if ($room->image && Storage::disk('public')->exists($room->image)) {
-                    Storage::disk('public')->delete($room->image);
-                }
-                $imagePath = $request->file('image')->store('images/room', 'public');
-            }
+            DB::beginTransaction();
 
             // Update the room
             $room->update([
                 'room_category_id' => $validated['room_category_id'],
                 'name' => $validated['name'],
                 'description' => $validated['description'],
-                'image' => $imagePath,
             ]);
+
+            // Handle deleted images
+            if ($request->has('deleted_images') && is_array($request->deleted_images)) {
+                $deletedImages = RoomImage::where('room_id', $room->id)
+                    ->whereIn('id', $request->deleted_images)
+                    ->get();
+
+                foreach ($deletedImages as $deletedImage) {
+                    // Delete physical file
+                    if (Storage::disk('public')->exists($deletedImage->image)) {
+                        Storage::disk('public')->delete($deletedImage->image);
+                    }
+                    // Delete from database
+                    $deletedImage->delete();
+                }
+            }
+
+            // Handle new image uploads
+            if ($request->has('images') && is_array($request->images)) {
+                // Check current image count after deletions
+                $currentImageCount = $room->roomImages()->count();
+                $newImageCount = count($request->images);
+                
+                if (($currentImageCount + $newImageCount) > 10) {
+                    DB::rollBack();
+                    return back()
+                        ->with('error', [
+                            'title' => 'Too Many Images',
+                            'message' => 'Maximum 3 images allowed per room.'
+                        ])
+                        ->withInput();
+                }
+
+                foreach ($request->images as $image) {
+                    if ($image) {
+                        $imagePath = $image->store('images/room', 'public');
+                        
+                        RoomImage::create([
+                            'room_id' => $room->id,
+                            'image' => $imagePath,
+                        ]);
+                    }
+                }
+            }
+
+            DB::commit();
 
             // Redirect with success message
             return redirect()->route('manager.room.index')
@@ -290,17 +365,20 @@ class RoomController extends Controller
                 ]);
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollBack();
             return redirect()->route('manager.room.index')
                 ->with('error', [
                     'title' => 'Room Not Found',
                     'message' => 'The specified room does not exist or you do not have permission to access it.'
                 ]);
         } catch (ValidationException $e) {
+            DB::rollBack();
             // Return validation errors
             return back()
                 ->withErrors($e->errors())
                 ->withInput();
         } catch (\Exception $e) {
+            DB::rollBack();
             // Handle any other errors
             return back()
                 ->with('error', [
@@ -316,20 +394,28 @@ class RoomController extends Controller
      */
     public function destroy(string $id)
     {
-        Try {
+        try {
             $user = Auth::user();
-            $room = Room::where('id', $id)
+            $room = Room::with('roomImages')
+                ->where('id', $id)
                 ->where('company_id', $user->company_id)
                 ->firstOrFail();
 
             $roomName = $room->name;
             
-            // Delete image if exists
-            if ($room->image && Storage::disk('public')->exists($room->image)) {
-                Storage::disk('public')->delete($room->image);
+            DB::beginTransaction();
+
+            // Delete all room images
+            foreach ($room->roomImages as $roomImage) {
+                if (Storage::disk('public')->exists($roomImage->image)) {
+                    Storage::disk('public')->delete($roomImage->image);
+                }
             }
             
+            // Delete room (images will be deleted automatically due to cascade)
             $room->delete();
+
+            DB::commit();
 
             return redirect()->route('manager.room.index')
                 ->with('success', [
@@ -337,16 +423,17 @@ class RoomController extends Controller
                     'message' => "Room '{$roomName}' has been deleted successfully."
                 ]);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollBack();
             return back()->with('error', [
                 'title' => 'Room Not Found',
                 'message' => 'The specified room does not exist.'
             ]);
         } catch (\Exception $e) {
+            DB::rollBack();
             return back()->with('error', [
                 'title' => 'Error!',
                 'message' => 'An error occurred while deleting the room. Please try again.'
             ]);
         }
     }
-
 }

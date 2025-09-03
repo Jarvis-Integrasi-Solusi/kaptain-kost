@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,7 +12,7 @@ import { cn } from '@/lib/utils';
 import { type BreadcrumbItem, type PageProps } from '@/types';
 import { formatCurrency } from '@/utils/format';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
-import { Check, ChevronsUpDown, Save, Upload, X } from 'lucide-react';
+import { Check, ChevronsUpDown, ImageIcon, Save, Upload, X } from 'lucide-react';
 import { type ChangeEvent, useState } from 'react';
 
 interface RoomCategory {
@@ -37,6 +38,12 @@ interface RoomCreatePageProps extends PageProps {
     errors: Record<string, string>;
 }
 
+interface PreviewImage {
+    file: File;
+    url: string;
+    id: string;
+}
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Manager',
@@ -53,39 +60,83 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function CreateRoom() {
     const { categories, errors } = usePage<RoomCreatePageProps>().props;
-    const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [previewImages, setPreviewImages] = useState<PreviewImage[]>([]);
     const [openCategory, setOpenCategory] = useState(false);
 
     const { data, setData, post, processing, reset } = useForm({
         name: '',
         room_category_id: '',
         description: '',
-        image: null as File | null,
+        images: [] as File[],
     });
 
     // Find selected category
     const selectedCategory = categories.find((category) => category.id.toString() === data.room_category_id);
 
     const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setData('image', file);
+        const files = Array.from(e.target.files || []);
+
+        if (files.length === 0) return;
+
+        // Check total images limit (current + new)
+        const totalImages = previewImages.length + files.length;
+        if (totalImages > 10) {
+            alert('Maximum 10 images allowed. Please select fewer images.');
+            return;
+        }
+
+        const validFiles: File[] = [];
+        // const newPreviews: PreviewImage[] = [];
+
+        files.forEach((file) => {
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                alert(`${file.name} is not a valid image file.`);
+                return;
+            }
+
+            // Validate file size (2MB)
+            if (file.size > 2 * 1024 * 1024) {
+                alert(`${file.name} is too large. Maximum file size is 2MB.`);
+                return;
+            }
+
+            validFiles.push(file);
 
             // Create preview
             const reader = new FileReader();
             reader.onloadend = () => {
-                setPreviewImage(reader.result as string);
+                const preview: PreviewImage = {
+                    file,
+                    url: reader.result as string,
+                    id: `${Date.now()}-${Math.random()}`,
+                };
+
+                setPreviewImages((prev) => [...prev, preview]);
             };
             reader.readAsDataURL(file);
+        });
+
+        if (validFiles.length > 0) {
+            setData('images', [...data.images, ...validFiles]);
         }
+
+        // Reset input
+        e.target.value = '';
     };
 
-    const removeImage = () => {
-        setData('image', null);
-        setPreviewImage(null);
-        // Reset file input
-        const fileInput = document.getElementById('image') as HTMLInputElement;
-        if (fileInput) fileInput.value = '';
+    const removeImage = (imageId: string) => {
+        const imageToRemove = previewImages.find((img) => img.id === imageId);
+        if (!imageToRemove) return;
+
+        // Remove from preview
+        setPreviewImages((prev) => prev.filter((img) => img.id !== imageId));
+
+        // Remove from form data
+        setData(
+            'images',
+            data.images.filter((file) => file !== imageToRemove.file),
+        );
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -99,7 +150,7 @@ export default function CreateRoom() {
         post('/manager/room', {
             onSuccess: () => {
                 reset();
-                setPreviewImage(null);
+                setPreviewImages([]);
             },
             onError: (errors) => {
                 console.log('Validation errors:', errors);
@@ -110,6 +161,8 @@ export default function CreateRoom() {
     const handleCancel = () => {
         router.get('/manager/room');
     };
+
+    
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -123,7 +176,7 @@ export default function CreateRoom() {
                     </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-3">
+                <form onSubmit={handleSubmit} className="grid items-start gap-6 lg:grid-cols-3">
                     {/* Room Information Form */}
                     <Card className="lg:col-span-2">
                         <CardHeader>
@@ -249,48 +302,83 @@ export default function CreateRoom() {
                         </CardContent>
                     </Card>
 
-                    {/* Room Image Card */}
+                    {/* Room Images Card */}
                     <Card className="lg:col-span-1">
                         <CardHeader>
-                            <CardTitle>Room Image</CardTitle>
-                            <CardDescription>Upload an image for this room</CardDescription>
+                            <CardTitle>Room Images</CardTitle>
+                            <CardDescription>Upload images for this room (Max: 3 images, 2MB each)</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="space-y-2">
-                                <Label htmlFor="image" className="text-sm font-medium">
-                                    Room Image
-                                </Label>
-                                {previewImage ? (
-                                    <div className="relative">
-                                        <img
-                                            src={previewImage}
-                                            alt="Room preview"
-                                            className="h-auto w-full rounded-lg border object-contain"
-                                            style={{ maxHeight: '400px' }}
-                                        />
-                                        <Button
-                                            type="button"
-                                            variant="destructive"
-                                            size="sm"
-                                            className="absolute top-2 right-2"
-                                            onClick={removeImage}
-                                        >
-                                            <X className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                ) : (
-                                    <div className="flex h-64 w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25">
-                                        <Upload className="h-8 w-8 text-muted-foreground" />
+                            <div className="space-y-4">
+                                {/* Upload Area */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="images" className="text-sm font-medium">
+                                        Room Images
+                                    </Label>
+                                    <div className="flex h-32 w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25 transition-colors hover:border-muted-foreground/50">
+                                        <Upload className="h-6 w-6 text-muted-foreground" />
                                         <div className="text-center text-sm text-muted-foreground">
-                                            <label htmlFor="image" className="cursor-pointer font-medium text-primary hover:text-primary/80">
-                                                Click to upload
+                                            <label htmlFor="images" className="cursor-pointer font-medium text-primary hover:text-primary/80">
+                                                Click to upload images
                                             </label>
-                                            <p className="mt-1">PNG, JPG up to 2MB</p>
+                                            <p className="mt-1">PNG, JPG up to 2MB each</p>
+                                            {previewImages.length > 0 && (
+                                                <p className="mt-1 text-xs text-green-600">{previewImages.length}/3 images selected</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <input id="images" type="file" multiple accept="image/*" onChange={handleImageChange} className="hidden" />
+                                    {errors.images && <p className="text-sm text-red-500">{errors.images}</p>}
+                                </div>
+
+                                {/* Image Preview Carousel */}
+                                {previewImages.length > 0 && (
+                                    
+                                    <div className="space-y-2">
+                                        <Label className="text-sm font-medium">Preview Images</Label>
+                                        <div className="relative">
+                                            <Carousel className="w-full">
+                                                <CarouselContent>
+                                                    {previewImages.map((preview) => (
+                                                        <CarouselItem key={preview.id}>
+                                                            <div className="group relative">
+                                                                <img
+                                                                    src={preview.url}
+                                                                    alt="Room preview"
+                                                                    className="h-64 w-full rounded-lg border object-cover"
+                                                                />
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="destructive"
+                                                                    size="sm"
+                                                                    className="absolute top-2 right-2 opacity-0 transition-opacity group-hover:opacity-100"
+                                                                    onClick={() => removeImage(preview.id)}
+                                                                >
+                                                                    <X className="h-4 w-4" />
+                                                                </Button>
+                                                            </div>
+                                                        </CarouselItem>
+                                                    ))}
+                                                </CarouselContent>
+
+                                                {previewImages.length > 1 && (
+                                                    <>
+                                                        <CarouselPrevious type="button" className="absolute top-1/2 left-2 -translate-y-1/2" />
+                                                        <CarouselNext type="button" className="absolute top-1/2 right-2 -translate-y-1/2" />
+                                                    </>
+                                                )}
+                                            </Carousel>
                                         </div>
                                     </div>
                                 )}
-                                <input id="image" type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
-                                {errors.image && <p className="text-sm text-red-500">{errors.image}</p>}
+
+                                {/* Empty State when no images */}
+                                {previewImages.length === 0 && (
+                                    <div className="flex h-32 w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-muted-foreground/25">
+                                        <ImageIcon className="h-8 w-8 text-muted-foreground/50" />
+                                        <p className="text-sm text-muted-foreground/70">No images selected</p>
+                                    </div>
+                                )}
                             </div>
                         </CardContent>
                     </Card>

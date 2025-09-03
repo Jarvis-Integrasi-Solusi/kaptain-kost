@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,11 +14,16 @@ import { Room } from '@/types/room';
 import { RoomCategory } from '@/types/room-category';
 import { formatCurrency } from '@/utils/format';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
-import { Check, ChevronsUpDown, Save, Upload, X } from 'lucide-react';
+import { Check, ChevronsUpDown, ImageIcon, Save, Upload, X } from 'lucide-react';
 import { type ChangeEvent, useEffect, useState } from 'react';
 
 interface RoomEditPageProps extends PageProps {
-    room: Room;
+    room: Room & {
+        room_images?: Array<{
+            id: number;
+            image: string;
+        }>;
+    };
     categories: RoomCategory[];
     flash?: {
         success?: {
@@ -32,9 +38,21 @@ interface RoomEditPageProps extends PageProps {
     errors: Record<string, string>;
 }
 
+interface PreviewImage {
+    file: File;
+    url: string;
+    id: string;
+}
+
+interface ExistingImage {
+    id: number;
+    url: string;
+}
+
 export default function EditRoom() {
     const { room, categories, errors } = usePage<RoomEditPageProps>().props;
-    const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [previewImages, setPreviewImages] = useState<PreviewImage[]>([]);
+    const [existingImages, setExistingImages] = useState<ExistingImage[]>([]);
     const [openCategory, setOpenCategory] = useState(false);
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -54,45 +72,98 @@ export default function EditRoom() {
         name: room.name,
         room_category_id: room.room_category_id.toString(),
         description: room.description || '',
-        image: null as File | null,
+        images: [] as File[],
+        deleted_images: [] as number[],
         _method: 'PUT' as const,
     });
 
-    // Set initial preview image if room has existing image
+    // Initialize existing images
     useEffect(() => {
-        if (room.image) {
-            setPreviewImage(`/storage/${room.image}`);
+        if (room.room_images && room.room_images.length > 0) {
+            setExistingImages(
+                room.room_images.map((img) => ({
+                    id: img.id,
+                    url: `${window.location.origin}/storage/${img.image}`,
+                })),
+            );
         }
-    }, [room.image]);
+    }, [room.room_images]);
 
     // Find selected category
     const selectedCategory = categories.find((category) => category.id.toString() === data.room_category_id);
 
     const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setData('image', file);
+        const files = Array.from(e.target.files || []);
+
+        if (files.length === 0) return;
+
+        // Count current images (existing + new previews + new files)
+        const totalImages = existingImages.length + previewImages.length + files.length;
+
+        if (totalImages > 3) {
+            alert('Maximum 3 images allowed. Please select fewer images.');
+            return;
+        }
+
+        const validFiles: File[] = [];
+
+        files.forEach((file) => {
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                alert(`${file.name} is not a valid image file.`);
+                return;
+            }
+
+            // Validate file size (2MB)
+            if (file.size > 2 * 1024 * 1024) {
+                alert(`${file.name} is too large. Maximum file size is 2MB.`);
+                return;
+            }
+
+            validFiles.push(file);
 
             // Create preview
             const reader = new FileReader();
             reader.onloadend = () => {
-                setPreviewImage(reader.result as string);
+                const preview: PreviewImage = {
+                    file,
+                    url: reader.result as string,
+                    id: `${Date.now()}-${Math.random()}`,
+                };
+
+                setPreviewImages((prev) => [...prev, preview]);
             };
             reader.readAsDataURL(file);
+        });
+
+        if (validFiles.length > 0) {
+            setData('images', [...data.images, ...validFiles]);
         }
+
+        // Reset input
+        e.target.value = '';
     };
 
-    const removeImage = () => {
-        setData('image', null);
-        // Reset to original image if exists, otherwise null
-        if (room.image) {
-            setPreviewImage(`/storage/${room.image}`);
-        } else {
-            setPreviewImage(null);
-        }
-        // Reset file input
-        const fileInput = document.getElementById('image') as HTMLInputElement;
-        if (fileInput) fileInput.value = '';
+    const removeNewImage = (imageId: string) => {
+        const imageToRemove = previewImages.find((img) => img.id === imageId);
+        if (!imageToRemove) return;
+
+        // Remove from preview
+        setPreviewImages((prev) => prev.filter((img) => img.id !== imageId));
+
+        // Remove from form data
+        setData(
+            'images',
+            data.images.filter((file) => file !== imageToRemove.file),
+        );
+    };
+
+    const deleteExistingImage = (imageId: number) => {
+        // Remove from existing images display
+        setExistingImages((prev) => prev.filter((img) => img.id !== imageId));
+
+        // Add to deleted_images list for backend
+        setData('deleted_images', [...data.deleted_images, imageId]);
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -117,6 +188,9 @@ export default function EditRoom() {
         router.get('/manager/room');
     };
 
+    // Calculate total current images for display
+    const totalCurrentImages = existingImages.length + previewImages.length;
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Edit Room - ${room.name}`} />
@@ -129,7 +203,7 @@ export default function EditRoom() {
                     </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-3">
+                <form onSubmit={handleSubmit} className="grid items-start gap-6 lg:grid-cols-3">
                     {/* Room Information Form */}
                     <Card className="lg:col-span-2">
                         <CardHeader>
@@ -255,53 +329,118 @@ export default function EditRoom() {
                         </CardContent>
                     </Card>
 
-                    {/* Room Image Card */}
+                    {/* Room Images Card */}
                     <Card className="lg:col-span-1">
                         <CardHeader>
-                            <CardTitle>Room Image</CardTitle>
-                            <CardDescription>Upload an image for this room</CardDescription>
+                            <CardTitle>Room Images</CardTitle>
+                            <CardDescription>Manage images for this room (Max: 3 images, 2MB each)</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="space-y-2">
-                                <Label htmlFor="image" className="text-sm font-medium">
-                                    Room Image
-                                </Label>
-                                {previewImage ? (
-                                    <div className="relative">
-                                        <img
-                                            src={previewImage}
-                                            alt="Room preview"
-                                            className="h-auto w-full rounded-lg border object-contain"
-                                            style={{ maxHeight: '400px' }}
-                                        />
-                                        <Button
-                                            type="button"
-                                            variant="destructive"
-                                            size="sm"
-                                            className="absolute top-2 right-2"
-                                            onClick={removeImage}
-                                        >
-                                            <X className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                ) : (
-                                    <div className="flex h-64 w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25">
-                                        <Upload className="h-8 w-8 text-muted-foreground" />
+                            <div className="space-y-4">
+                                {/* Upload Area */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="images" className="text-sm font-medium">
+                                        Add New Images
+                                    </Label>
+                                    <div className="flex h-32 w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25 transition-colors hover:border-muted-foreground/50">
+                                        <Upload className="h-6 w-6 text-muted-foreground" />
                                         <div className="text-center text-sm text-muted-foreground">
-                                            <label htmlFor="image" className="cursor-pointer font-medium text-primary hover:text-primary/80">
-                                                Click to upload
+                                            <label htmlFor="images" className="cursor-pointer font-medium text-primary hover:text-primary/80">
+                                                Click to upload images
                                             </label>
-                                            <p className="mt-1">PNG, JPG up to 2MB</p>
-                                            {room.image && (
-                                                <p className="mt-1 text-xs text-muted-foreground">
-                                                    Current image will be kept if no new image is uploaded
-                                                </p>
-                                            )}
+                                            <p className="mt-1">PNG, JPG up to 2MB each</p>
+                                            <p className="mt-1 text-xs text-green-600">{totalCurrentImages}/3 images</p>
+                                        </div>
+                                    </div>
+                                    <input id="images" type="file" multiple accept="image/*" onChange={handleImageChange} className="hidden" />
+                                    {errors.images && <p className="text-sm text-red-500">{errors.images}</p>}
+                                </div>
+
+                                {/* Current Images Section */}
+                                {(existingImages.length > 0 || previewImages.length > 0) && (
+                                    <div className="space-y-2">
+                                        <Label className="text-sm font-medium">Current Images</Label>
+                                        <div className="relative">
+                                            <Carousel className="w-full">
+                                                <CarouselContent>
+                                                    {/* Existing Images */}
+                                                    {existingImages.map((existing) => (
+                                                        <CarouselItem key={`existing-${existing.id}`}>
+                                                            <div className="group relative">
+                                                                <img
+                                                                    src={existing.url}
+                                                                    alt="Room image"
+                                                                    className="h-64 w-full rounded-lg border object-cover"
+                                                                />
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="destructive"
+                                                                    size="sm"
+                                                                    className="absolute top-2 right-2 opacity-0 transition-opacity group-hover:opacity-100"
+                                                                    onClick={() => deleteExistingImage(existing.id)}
+                                                                >
+                                                                    <X className="h-4 w-4" />
+                                                                </Button>
+                                                            </div>
+                                                        </CarouselItem>
+                                                    ))}
+
+                                                    {/* New Preview Images */}
+                                                    {previewImages.map((preview) => (
+                                                        <CarouselItem key={`preview-${preview.id}`}>
+                                                            <div className="group relative">
+                                                                <img
+                                                                    src={preview.url}
+                                                                    alt="New room image"
+                                                                    className="h-64 w-full rounded-lg border object-cover"
+                                                                />
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="destructive"
+                                                                    size="sm"
+                                                                    className="absolute top-2 right-2 opacity-0 transition-opacity group-hover:opacity-100"
+                                                                    onClick={() => removeNewImage(preview.id)}
+                                                                >
+                                                                    <X className="h-4 w-4" />
+                                                                </Button>
+                                                                <div className="absolute bottom-2 left-2">
+                                                                    <span className="rounded bg-green-500 px-2 py-1 text-xs font-medium text-white">
+                                                                        New
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </CarouselItem>
+                                                    ))}
+                                                </CarouselContent>
+
+                                                {existingImages.length + previewImages.length > 1 && (
+                                                    <>
+                                                        <CarouselPrevious type="button" className="absolute top-1/2 left-2 -translate-y-1/2" />
+                                                        <CarouselNext type="button" className="absolute top-1/2 right-2 -translate-y-1/2" />
+                                                    </>
+                                                )}
+                                            </Carousel>
                                         </div>
                                     </div>
                                 )}
-                                <input id="image" type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
-                                {errors.image && <p className="text-sm text-red-500">{errors.image}</p>}
+
+                                {/* Empty State when no images */}
+                                {existingImages.length === 0 && previewImages.length === 0 && (
+                                    <div className="flex h-32 w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-muted-foreground/25">
+                                        <ImageIcon className="h-8 w-8 text-muted-foreground/50" />
+                                        <p className="text-sm text-muted-foreground/70">No images available</p>
+                                    </div>
+                                )}
+
+                                {/* Deletion Summary */}
+                                {data.deleted_images.length > 0 && (
+                                    <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3 text-sm">
+                                        <p className="font-medium text-yellow-800">Pending Deletions:</p>
+                                        <p className="text-yellow-700">
+                                            {data.deleted_images.length} image(s) will be permanently removed when you save changes
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         </CardContent>
                     </Card>
