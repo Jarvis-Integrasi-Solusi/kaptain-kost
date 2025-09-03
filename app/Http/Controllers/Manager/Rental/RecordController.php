@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Manager\Rental;
 
 use App\Http\Controllers\Controller;
+use App\Models\BookingFee;
 use App\Models\PaymentType;
 use App\Models\Rental;
 use App\Models\RentalPeriod;
@@ -72,12 +73,16 @@ class RecordController extends Controller
         
         // Get payment types
         $payment_types = PaymentType::all();
+
+        // Get booking fee options
+        $booking_fees = BookingFee::all();
         
         return Inertia::render('manager/rental/create', [
             'rooms' => $rooms,
             'tenants' => $tenants,
             'rental_periods' => $rental_periods,
             'payment_types' => $payment_types,
+            'booking_fees' => $booking_fees,
         ]);
     }
 
@@ -91,7 +96,8 @@ class RecordController extends Controller
                     'user',
                     'paymentType',
                     'rentalPeriod',
-                    'rentalPayments'
+                    'rentalPayments',
+                    'bookingFee'
                 ])
                 ->where('id', $id)
                 ->where('company_id', $user->company_id)
@@ -105,6 +111,9 @@ class RecordController extends Controller
             // Calculate payment progress percentage
             $paymentProgress = $rental->total_price > 0 ? ($totalPaid / $rental->total_price) * 100 : 0;
 
+            // Get booking fee options
+            $booking_fees = BookingFee::all();
+
             return Inertia::render('manager/rental/show', [
                 'rental' => $rental,
                 'paymentSummary' => [
@@ -112,7 +121,8 @@ class RecordController extends Controller
                     'total_paid' => $totalPaid,
                     'remaining_balance' => $remainingBalance,
                     'payment_status' => $paymentStatus,
-                    'payment_progress' => round($paymentProgress, 2)
+                    'payment_progress' => round($paymentProgress, 2),
+                    'booking_fees' => $booking_fees
                 ]
             ]);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
@@ -165,6 +175,13 @@ class RecordController extends Controller
                     'date',
                     'after_or_equal:today'
                 ],
+                'booking_fee_id' => [
+                    'nullable',
+                    'exists:booking_fees,id'
+                ],
+                'is_down_payment_paid_full' => [
+                    'boolean'
+                ]
             ]);
 
             // Get the selected room and rental period for calculations
@@ -250,16 +267,6 @@ class RecordController extends Controller
                 ->first();
 
             if ($existingRoomRental) {
-                Log::warning('Room already occupied', [
-                    'room_id' => $validated['room_id'],
-                    'existing_rental_id' => $existingRoomRental->id,
-                    'existing_tenant' => $existingRoomRental->user->name,
-                    'existing_entry' => $existingRoomRental->entry_date,
-                    'existing_exit' => $existingRoomRental->exit_date,
-                    'new_entry' => $entryDate->format('Y-m-d'),
-                    'new_exit' => $exitDate->format('Y-m-d')
-                ]);
-
                 return redirect()->back()
                     ->with('error', [
                         'title' => 'Room Already Occupied',
@@ -282,7 +289,7 @@ class RecordController extends Controller
                 return redirect()->back()
                     ->with('error', [
                         'title' => 'Room Booking Conflict',
-                        'message' => "Room {$room->name} has a future booking by {$futureRoomRental->user->name} starting on {$futureRoomRental->entry_date}, which conflicts with your selected rental period ending on {$exitDate->format('Y-m-d')}. Please choose a shorter rental period or different room."
+                        'message' => "Room {$room->name} has a future booking by {$futureRoomRental->user->name} starting on {$futureRoomRental->entry_date}, which conflicts with your selected rental period ending on {$exitDate->format('Y-m-d')}."
                     ])
                     ->withInput();
             }
@@ -308,6 +315,8 @@ class RecordController extends Controller
                 'entry_date' => $validated['entry_date'],
                 'exit_date' => $exitDate->format('Y-m-d'),
                 'total_price' => $totalPrice,
+                'booking_fee_id' => $validated['booking_fee_id'],
+                'is_down_payment_paid_full' => $validated['is_down_payment_paid_full'] ?? false
             ];
 
             // Create the rental record
@@ -320,12 +329,11 @@ class RecordController extends Controller
                 ]);
 
         } catch (ValidationException $e) {
-            Log::info('Validation error ' . $e);
+            Log::info('Validation error during rental creation: ' . $e);
             return back()
                 ->withErrors($e->errors())
                 ->withInput();
         } catch (\Exception $e) {
-            Log::info('error ' . $e);
             return back()
                 ->with('error', [
                     'title' => 'Error!',
@@ -398,13 +406,17 @@ class RecordController extends Controller
             
             // Get payment types
             $payment_types = PaymentType::all();
-            
+
+            // Get booking fees
+            $booking_fees = BookingFee::all();
+
             return Inertia::render('manager/rental/edit', [
                 'rental' => $rental,
                 'rooms' => $rooms,
                 'tenants' => $tenants,
                 'rental_periods' => $rental_periods,
                 'payment_types' => $payment_types,
+                'booking_fees' => $booking_fees,
             ]);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return redirect()->route('manager.rental.record.index')
@@ -432,6 +444,15 @@ class RecordController extends Controller
                 ->where('company_id', $user->company_id)
                 ->firstOrFail();
 
+            if ($rental->status !== 'booked') {
+                return redirect()->route('manager.rental.record.index')
+                    ->with('error', [
+                        'title' => 'Room Already Occupied',
+                        'message' => "Payment data can't be updated, please recreate the rental."
+                    ])
+                    ->withInput();
+            }
+
             // Validate the request
             $validated = $request->validate([
                 'user_id' => [
@@ -458,6 +479,10 @@ class RecordController extends Controller
                     'required',
                     'date'
                 ],
+                'is_down_payment_paid_full' => [
+                    'boolean'
+                ]
+
             ]);
 
             // Get the selected room and rental period for calculations
@@ -543,17 +568,6 @@ class RecordController extends Controller
                 ->first();
 
             if ($existingRoomRental) {
-                Log::warning('Room already occupied during update', [
-                    'rental_id' => $rental->id,
-                    'room_id' => $validated['room_id'],
-                    'existing_rental_id' => $existingRoomRental->id,
-                    'existing_tenant' => $existingRoomRental->user->name,
-                    'existing_entry' => $existingRoomRental->entry_date,
-                    'existing_exit' => $existingRoomRental->exit_date,
-                    'new_entry' => $entryDate->format('Y-m-d'),
-                    'new_exit' => $exitDate->format('Y-m-d')
-                ]);
-
                 return redirect()->back()
                     ->with('error', [
                         'title' => 'Room Already Occupied',
@@ -589,6 +603,7 @@ class RecordController extends Controller
             $totalRentalFee = $totalMonthlyFee * $months;
             $totalPrice = $depositFee + $totalRentalFee;
 
+
             // Prepare rental data for update
             $updateData = [
                 'user_id' => $validated['user_id'],
@@ -598,20 +613,17 @@ class RecordController extends Controller
                 'entry_date' => $validated['entry_date'],
                 'exit_date' => $exitDate->format('Y-m-d'),
                 'total_price' => $totalPrice,
+                'is_down_payment_paid_full' => $validated['is_down_payment_paid_full'] ?? false
             ];
 
             // Update the rental record
             $rental->update($updateData);
 
-            // Log the update for auditing
-            Log::info('Rental updated successfully', [
-                'rental_id' => $rental->id,
-                'updated_by' => $user->id,
-                'old_total_price' => $rental->getOriginal('total_price'),
-                'new_total_price' => $totalPrice,
-                'changes' => $rental->getChanges()
-            ]);
+            // recreate rental payment data 
+            $rental->rentalPayments()->delete();
+            $rental->createPaymentRecords();
 
+            
             return redirect()->route('manager.rental.record.show', $rental->id)
                 ->with('success', [
                     'title' => 'Rental Record Updated!',
@@ -641,6 +653,40 @@ class RecordController extends Controller
                     'message' => 'An error occurred while updating the rental record: ' . $e->getMessage()
                 ])
                 ->withInput();
+        }
+    }
+
+    public function terminate(string $id) 
+    {
+        $user = Auth::user();
+
+        $rental = Rental::where('id', $id)
+            ->where('company_id', $user->company_id)
+            ->firstOrFail();
+
+        if ($rental->status === 'terminated') {
+            return redirect()->back()
+                ->with('error', [
+                    'title' => 'Rental Already Terminated',
+                    'message' => 'This rental record has already been terminated.'
+                ]);
+        }
+
+        try {
+            $rental->status = 'terminated';
+            $rental->save();
+
+            return redirect()->back()
+                ->with('success', [
+                    'title' => 'Rental Terminated',
+                    'message' => 'The rental has been successfully terminated.'
+                ]);
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', [
+                    'title' => 'Error!',
+                    'message' => 'An error occurred while terminating the rental. Please try again.'
+                ]);
         }
     }
 

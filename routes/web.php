@@ -68,6 +68,7 @@ Route::middleware(['auth', 'verified', 'role:manager'])->prefix('manager')->grou
         Route::get('/{id}/edit', [RecordController::class, 'edit'])->name('manager.rental.record.edit');
         Route::put('/{id}', [RecordController::class, 'update'])->name('manager.rental.record.update');
         Route::delete('/{id}', [RecordController::class, 'destroy'])->name('manager.rental.record.destroy');
+        Route::post('/{id}/terminate', [RecordController::class, 'terminate'])->name('manager.rental.record.terminate');
     });
 
     // User Management

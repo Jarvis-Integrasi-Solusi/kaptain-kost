@@ -13,7 +13,7 @@ import { PaymentSummary } from '@/types/payment-summary';
 import { Rental } from '@/types/rental';
 import { formatCurrency } from '@/utils/format';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { Bell, CreditCard, Edit, Trash2 } from 'lucide-react';
+import { Bell, Check, CreditCard, Edit, Trash2, X } from 'lucide-react';
 
 interface RentalDetailPageProps extends PageProps {
     rental: Rental;
@@ -87,11 +87,62 @@ export default function RentalDetail() {
     // Calculate rental duration
     const rentalDuration = rental.rental_period?.month || rental.rental_period?.month || 0;
 
-    // Calculate breakdown
+    // Calculate breakdown similar to create page
     const monthlyFee = rental.room.room_category.monthly_rental_fee;
     const managementFee = rental.room.room_category.management_fee;
     const depositFee = rental.room.room_category.deposit_fee;
-    const totalRentalFee = monthlyFee * rentalDuration;
+    const bookingFee = rental.booking_fee?.amount || 0;
+
+    // Calculate costs similar to create page logic
+    const totalRentalCost = (monthlyFee + managementFee) * rentalDuration;
+    const netRentalCost = totalRentalCost - bookingFee;
+    const totalPrice = depositFee + totalRentalCost;
+
+    // Check if it's cash payment
+    const isCashPayment = rental.payment_type?.name.toLowerCase() === 'cash';
+
+    // Calculate payment breakdown based on payment type
+    const getPaymentBreakdown = () => {
+        const paymentType = rental.payment_type?.name.toLowerCase();
+        let breakdown: { label: string; amount: number; percentage?: number | null }[] = [];
+
+        if (paymentType === 'cash') {
+            if (rental.is_down_payment_paid_full) {
+                breakdown = [{ label: 'Down Payment (Full)', amount: netRentalCost, percentage: 100 }];
+            } else {
+                breakdown = [
+                    { label: 'Down Payment (50%)', amount: netRentalCost * 0.5, percentage: 50 },
+                    { label: 'Settlement (50%)', amount: netRentalCost * 0.5, percentage: 50 },
+                ];
+            }
+        } else if (paymentType === 'partial') {
+            breakdown = [
+                { label: 'Down Payment (50%)', amount: netRentalCost * 0.5, percentage: 50 },
+                { label: 'Rental Fee 1st (20%)', amount: netRentalCost * 0.2, percentage: 20 },
+                { label: 'Rental Fee 2nd (20%)', amount: netRentalCost * 0.2, percentage: 20 },
+                { label: 'Rental Fee 3rd (10%)', amount: netRentalCost * 0.1, percentage: 10 },
+            ];
+        } else if (paymentType === 'monthly') {
+            const monthlyPayment = monthlyFee + managementFee;
+            const totalMonthlyPayment = monthlyPayment * rentalDuration;
+            breakdown = [
+                {
+                    label: `Monthly Payment × ${rentalDuration}`,
+                    amount: monthlyPayment,
+                    percentage: null,
+                },
+                {
+                    label: `Total Monthly Payment`,
+                    amount: totalMonthlyPayment,
+                    percentage: null,
+                },
+            ];
+        }
+
+        return breakdown;
+    };
+
+    const paymentBreakdown = getPaymentBreakdown();
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -178,6 +229,10 @@ export default function RentalDetail() {
                                                 <Input value={rental.payment_type?.name || '-'} disabled className="bg-muted" />
                                             </div>
                                             <div className="space-y-2">
+                                                <Label className="text-sm font-medium">Booking Fee</Label>
+ 
+                                            </div>
+                                            <div className="space-y-2">
                                                 <Label className="text-sm font-medium">Entry Date</Label>
                                                 <Input value={formatDate(rental.entry_date)} disabled className="bg-muted" />
                                             </div>
@@ -186,7 +241,35 @@ export default function RentalDetail() {
                                                 <Input value={formatDate(rental.exit_date)} disabled className="bg-muted" />
                                             </div>
                                         </div>
+
+                                        {/* Down Payment Option for Cash Payment */}
+                                        {isCashPayment && (
+                                            <div className="space-y-2">
+                                                <Label className="text-sm font-medium">Down Payment Option</Label>
+                                                <div className="flex items-center space-x-3 rounded-lg border bg-muted p-3">
+                                                    <div className="flex items-center">
+                                                        {rental.is_down_payment_paid_full ? (
+                                                            <Check className="h-4 w-4 text-green-600" />
+                                                        ) : (
+                                                            <X className="h-4 w-4 text-red-600" />
+                                                        )}
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <p className="text-sm font-medium">
+                                                            {rental.is_down_payment_paid_full ? 'Full payment upfront' : 'Split payment (50% + 50%)'}
+                                                        </p>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            {rental.is_down_payment_paid_full
+                                                                ? 'Full payment made on entry date'
+                                                                : '50% down payment + 50% settlement payment'}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
+
+                                    <Separator />
 
                                     {/* Total Price */}
                                     <div className="space-y-2">
@@ -199,27 +282,23 @@ export default function RentalDetail() {
 
                         {/* Sidebar */}
                         <div className="space-y-6">
-                            {/* Cost Summary */}
+                            {/* Cost Summary - Improved to match create page */}
                             <Card>
                                 <CardHeader>
                                     <CardTitle className="text-lg">Cost Summary</CardTitle>
+                                    <CardDescription>Detailed rental pricing breakdown</CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="space-y-3">
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-muted-foreground">Deposit Fee</span>
-                                            <span className="font-medium">{formatCurrency(depositFee)}</span>
-                                        </div>
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-muted-foreground">Management Fee</span>
-                                            <span className="font-medium">{formatCurrency(managementFee)}</span>
-                                        </div>
-
-                                        <Separator />
-
+                                        {/* Basic Fees */}
                                         <div className="flex justify-between text-sm">
                                             <span className="text-muted-foreground">Monthly Rental Fee</span>
                                             <span className="font-medium">{formatCurrency(monthlyFee)}</span>
+                                        </div>
+
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-muted-foreground">Management Fee</span>
+                                            <span className="font-medium">{formatCurrency(managementFee)}</span>
                                         </div>
 
                                         <div className="flex justify-between text-sm">
@@ -227,17 +306,64 @@ export default function RentalDetail() {
                                             <span className="font-medium">{rentalDuration} months</span>
                                         </div>
 
-                                        <div className="flex justify-between font-medium">
-                                            <span>Total Rental Fee</span>
-                                            <span>{formatCurrency(totalRentalFee)}</span>
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-muted-foreground">Total Rental Cost</span>
+                                            <span className="font-medium">{formatCurrency(totalRentalCost)}</span>
                                         </div>
 
                                         <Separator />
 
+                                        {/* Booking Fee if exists */}
+                                        {bookingFee > 0 && (
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-muted-foreground">Booking Fee</span>
+                                                <span className="font-medium">{bookingFee > 0 ? formatCurrency(bookingFee) : '-'}</span>
+                                            </div>
+                                        )}
+
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-muted-foreground">Net Rental Cost</span>
+                                            <span className="font-medium">{formatCurrency(netRentalCost)}</span>
+                                        </div>
+
+                                        <Separator />
+
+                                        {/* Payment Breakdown */}
+                                        {paymentBreakdown.length > 0 && (
+                                            <>
+                                                <div>
+                                                    <h4 className="mb-2 text-sm font-medium">Payment Schedule</h4>
+                                                    <div className="flex justify-between text-sm">
+                                                        <span className="text-muted-foreground">Deposit Fee</span>
+                                                        <span className="font-medium">{formatCurrency(depositFee)}</span>
+                                                    </div>
+                                                    <div className="mt-2 space-y-2">
+                                                        {paymentBreakdown.map((payment, index) => (
+                                                            <div key={index} className="flex justify-between text-sm">
+                                                                <span className="text-muted-foreground">{payment.label}</span>
+                                                                <span className="font-medium">{formatCurrency(payment.amount)}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <Separator />
+                                            </>
+                                        )}
+
+                                        {/* Total Price */}
                                         <div className="space-y-2 rounded-lg bg-blue-50 p-3 dark:bg-blue-950/30">
                                             <div className="flex justify-between font-medium text-blue-800 dark:text-blue-300">
                                                 <span>Total Price</span>
-                                                <span className="text-lg">{formatCurrency(rental.total_price)}</span>
+                                                <span className="text-lg">{formatCurrency(totalPrice)}</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Rental Period */}
+                                        <Separator />
+                                        <div className="space-y-2 rounded-lg bg-green-50 p-3 dark:bg-green-950/30">
+                                            <div className="text-sm font-medium text-green-800 dark:text-green-300">Rental Period</div>
+                                            <div className="text-xs text-green-700 dark:text-green-400">
+                                                {formatDate(rental.entry_date)} → {formatDate(rental.exit_date)}
                                             </div>
                                         </div>
                                     </div>

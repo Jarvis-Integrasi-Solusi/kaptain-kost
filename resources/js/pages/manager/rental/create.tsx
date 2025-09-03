@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem, type PageProps } from '@/types';
+import { BookingFee } from '@/types/booking-fee';
 import { PaymentType } from '@/types/payment-type';
 import { RentalPeriod } from '@/types/rental-period';
 import { Room } from '@/types/room';
@@ -23,6 +25,7 @@ interface CreateRentalRecordPageProps extends PageProps {
     tenants: User[];
     rental_periods: RentalPeriod[];
     payment_types: PaymentType[];
+    booking_fees: BookingFee[];
     flash?: {
         success?: {
             title: string;
@@ -41,7 +44,9 @@ interface FormData {
     room_id: string;
     rental_period_id: string;
     payment_type_id: string;
+    booking_fee_id: string;
     entry_date: string;
+    is_down_payment_paid_full: boolean;
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -59,7 +64,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function CreateRentalRecord() {
-    const { rooms, tenants, rental_periods, payment_types, errors } = usePage<CreateRentalRecordPageProps>().props;
+    const { rooms, tenants, rental_periods, payment_types, booking_fees, errors } = usePage<CreateRentalRecordPageProps>().props;
 
     const [openTenant, setOpenTenant] = useState(false);
     const [openRoom, setOpenRoom] = useState(false);
@@ -69,43 +74,101 @@ export default function CreateRentalRecord() {
         room_id: '',
         rental_period_id: '',
         payment_type_id: '',
+        booking_fee_id: '',
         entry_date: '',
+        is_down_payment_paid_full: false,
     });
 
-    // Get selected tenant and room for display
-    const selectedTenant = tenants.find((tenant) => tenant.id.toString() === data.user_id);
-    const selectedRoom = rooms.find((room) => room.id.toString() === data.room_id);
+    // Get selected items for display
+    const selectedTenant = tenants?.find((tenant) => tenant.id.toString() === data.user_id);
+    const selectedRoom = rooms?.find((room) => room.id.toString() === data.room_id);
+    const selectedPaymentType = payment_types?.find((type) => type.id.toString() === data.payment_type_id);
+    // const selectedBookingFee = booking_fees?.find((fee) => fee.id.toString() === data.booking_fee_id) || null;
 
-    // Calculate totals based on selected room and rental period
+    // Calculate totals and payment breakdown
     const calculations = useMemo(() => {
-        const selectedRoom = rooms.find((room) => room.id.toString() === data.room_id);
-        const selectedPeriod = rental_periods.find((period) => period.id.toString() === data.rental_period_id);
+        const selectedRoom = rooms?.find((room) => room.id.toString() === data.room_id);
+        const selectedPeriod = rental_periods?.find((period) => period.id.toString() === data.rental_period_id);
+        const selectedPaymentType = payment_types?.find((type) => type.id.toString() === data.payment_type_id);
+        const selectedBookingFee = booking_fees?.find((fee) => fee.id.toString() === data.booking_fee_id) || null;
 
         if (!selectedRoom || !selectedPeriod) {
             return {
                 monthlyFee: 0,
                 managementFee: 0,
                 depositFee: 0,
-                totalMonthlyFee: 0,
-                totalRentalFee: 0,
+                bookingFee: 0,
+                totalRentalCost: 0,
+                netRentalCost: 0,
+                downPayment: 0,
+                remainingPayment: 0,
                 totalPrice: 0,
                 exitDate: null,
                 durationMonths: 0,
+                paymentBreakdown: [],
             };
         }
 
         const monthlyFee = selectedRoom.room_category.monthly_rental_fee;
         const managementFee = selectedRoom.room_category.management_fee;
         const depositFee = selectedRoom.room_category.deposit_fee;
-        const totalMonthlyFee = monthlyFee;
-        const totalRentalFee = totalMonthlyFee * selectedPeriod.month;
-        const totalPrice = depositFee + totalRentalFee + managementFee;
+        const bookingFee = selectedBookingFee ? selectedBookingFee.amount : 0;
 
-        // Calculate exit date - FIXED: Using proper date calculation
+        // Calculate total rental cost
+        const totalRentalCost = (monthlyFee + managementFee) * selectedPeriod.month;
+        const netRentalCost = totalRentalCost - bookingFee;
+
+        // Calculate payments based on payment type and down payment settings
+        let downPayment = 0;
+        let remainingPayment = 0;
+        let paymentBreakdown: { label: string; amount: number; percentage: number }[] | { label: string; amount: number; percentage: null }[] = [];
+
+        if (selectedPaymentType) {
+            if (selectedPaymentType.name.toLowerCase() === 'cash') {
+                if (data.is_down_payment_paid_full) {
+                    downPayment = netRentalCost;
+                    remainingPayment = 0;
+                    paymentBreakdown = [{ label: 'Down Payment (Full)', amount: downPayment, percentage: 100 }];
+                } else {
+                    downPayment = netRentalCost * 0.5;
+                    remainingPayment = netRentalCost * 0.5;
+                    paymentBreakdown = [
+                        { label: 'Down Payment (50%)', amount: downPayment, percentage: 50 },
+                        { label: 'Settlement (50%)', amount: remainingPayment, percentage: 50 },
+                    ];
+                }
+            } else if (selectedPaymentType.name.toLowerCase() === 'partial') {
+                downPayment = netRentalCost * 0.5;
+                paymentBreakdown = [
+                    { label: 'Down Payment (50%)', amount: downPayment, percentage: 50 },
+                    { label: 'Rental Fee 1st (20%)', amount: netRentalCost * 0.2, percentage: 20 },
+                    { label: 'Rental Fee 2nd (20%)', amount: netRentalCost * 0.2, percentage: 20 },
+                    { label: 'Rental Fee 3rd (10%)', amount: netRentalCost * 0.1, percentage: 10 },
+                ];
+            } else if (selectedPaymentType.name.toLowerCase() === 'monthly') {
+                const monthlyPayment = monthlyFee + managementFee;
+                const totalMonthlyPayment = monthlyPayment * selectedPeriod.month;
+                paymentBreakdown = [
+                    {
+                        label: `Monthly Payment × ${selectedPeriod.month}`,
+                        amount: monthlyPayment,
+                        percentage: null,
+                    },
+                    {
+                        label: `Total Monthly Payment`,
+                        amount: totalMonthlyPayment,
+                        percentage: null,
+                    },
+                ];
+            }
+        }
+
+        const totalPrice = depositFee + totalRentalCost;
+
+        // Calculate exit date
         let exitDate = null;
         if (data.entry_date) {
             const entryDate = new Date(data.entry_date);
-            // Create new date and add months properly
             exitDate = new Date(entryDate.getFullYear(), entryDate.getMonth() + selectedPeriod.month, entryDate.getDate());
         }
 
@@ -113,13 +176,28 @@ export default function CreateRentalRecord() {
             monthlyFee,
             managementFee,
             depositFee,
-            totalMonthlyFee,
-            totalRentalFee,
+            bookingFee,
+            totalRentalCost,
+            netRentalCost,
+            downPayment,
+            remainingPayment,
             totalPrice,
             exitDate,
             durationMonths: selectedPeriod.month,
+            paymentBreakdown,
         };
-    }, [data.room_id, data.rental_period_id, data.entry_date, rooms, rental_periods]);
+    }, [
+        data.room_id,
+        data.rental_period_id,
+        data.payment_type_id,
+        data.booking_fee_id,
+        data.entry_date,
+        data.is_down_payment_paid_full,
+        rooms,
+        rental_periods,
+        payment_types,
+        booking_fees,
+    ]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -155,6 +233,8 @@ export default function CreateRentalRecord() {
             year: 'numeric',
         });
     };
+
+    const isCashPayment = selectedPaymentType?.name.toLowerCase() === 'cash';
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -209,7 +289,7 @@ export default function CreateRentalRecord() {
                                                         <CommandList>
                                                             <CommandEmpty>No tenant found.</CommandEmpty>
                                                             <CommandGroup>
-                                                                {tenants.map((tenant) => (
+                                                                {tenants?.map((tenant) => (
                                                                     <CommandItem
                                                                         key={tenant.id}
                                                                         value={`${tenant.name} ${tenant.email}`}
@@ -282,7 +362,7 @@ export default function CreateRentalRecord() {
                                                     <CommandList>
                                                         <CommandEmpty>No room found.</CommandEmpty>
                                                         <CommandGroup>
-                                                            {rooms.map((room) => (
+                                                            {rooms?.map((room) => (
                                                                 <CommandItem
                                                                     key={room.id}
                                                                     value={`${room.name} ${room.room_category.name}`}
@@ -314,13 +394,35 @@ export default function CreateRentalRecord() {
                                         {errors.room_id && <p className="text-sm text-red-500">{errors.room_id}</p>}
                                     </div>
 
+                                    {/* Booking Fee Selection */}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="booking_fee_id" className="text-sm font-medium">
+                                            Booking Fee (Optional)
+                                        </Label>
+                                        <Select
+                                            value={data.booking_fee_id}
+                                            onValueChange={(value) => setData('booking_fee_id', value === 'no-booking' ? '' : value)}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select booking fee (optional)" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {booking_fees?.map((fee) => (
+                                                    <SelectItem key={fee.id} value={fee.id.toString()}>
+                                                        {formatCurrency(fee.amount)}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
                                     <Separator />
 
                                     {/* Rental Details */}
                                     <div className="space-y-4">
                                         <div>
                                             <h3 className="text-lg font-medium">Rental Details</h3>
-                                            <p className="text-sm text-muted-foreground">Set the rental period and dates</p>
+                                            <p className="text-sm text-muted-foreground">Set the rental period and payment options</p>
                                         </div>
 
                                         <div className="grid gap-4 sm:grid-cols-2">
@@ -333,7 +435,7 @@ export default function CreateRentalRecord() {
                                                         <SelectValue placeholder="Select period" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {rental_periods.map((period) => (
+                                                        {rental_periods?.map((period) => (
                                                             <SelectItem key={period.id} value={period.id.toString()}>
                                                                 {period.name} ({period.month} months)
                                                             </SelectItem>
@@ -352,7 +454,7 @@ export default function CreateRentalRecord() {
                                                         <SelectValue placeholder="Select payment type" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {payment_types.map((type) => (
+                                                        {payment_types?.map((type) => (
                                                             <SelectItem key={type.id} value={type.id.toString()}>
                                                                 {type.name}
                                                             </SelectItem>
@@ -361,7 +463,29 @@ export default function CreateRentalRecord() {
                                                 </Select>
                                                 {errors.payment_type_id && <p className="text-sm text-red-500">{errors.payment_type_id}</p>}
                                             </div>
+                                        </div>
 
+                                        {/* Conditional Down Payment Field for Cash */}
+                                        {isCashPayment && (
+                                            <div className="space-y-2">
+                                                <Label className="text-sm font-medium">Down Payment Option</Label>
+                                                <div className="flex items-center space-x-2 pt-2">
+                                                    <Checkbox
+                                                        id="is_down_payment_paid_full"
+                                                        checked={data.is_down_payment_paid_full}
+                                                        onCheckedChange={(checked) => setData('is_down_payment_paid_full', checked as boolean)}
+                                                    />
+                                                    <Label htmlFor="is_down_payment_paid_full" className="text-sm font-normal">
+                                                        Pay full amount upfront
+                                                    </Label>
+                                                </div>
+                                                <p className="text-xs text-muted-foreground">
+                                                    {data.is_down_payment_paid_full ? 'Full payment on entry date' : '50% down payment + 50% later'}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        <div className="grid gap-4 sm:grid-cols-2">
                                             <div className="space-y-2">
                                                 <Label htmlFor="entry_date" className="text-sm font-medium">
                                                     Entry Date *
@@ -372,7 +496,7 @@ export default function CreateRentalRecord() {
                                                     value={data.entry_date}
                                                     onChange={(e) => setData('entry_date', e.target.value)}
                                                     className={errors.entry_date ? 'border-red-500' : ''}
-                                                    min={new Date().toISOString().split('T')[0]} // Set minimum date to today
+                                                    min={new Date().toISOString().split('T')[0]}
                                                 />
                                                 {errors.entry_date && <p className="text-sm text-red-500">{errors.entry_date}</p>}
                                             </div>
@@ -416,19 +540,24 @@ export default function CreateRentalRecord() {
                             <CardContent className="space-y-4">
                                 <div className="space-y-3">
                                     <div className="flex justify-between text-sm">
-                                        <span className="text-muted-foreground">Deposit Fee</span>
-                                        <span className="font-medium">{formatCurrency(calculations.depositFee)}</span>
+                                        <span className="text-muted-foreground">Monthly Rental Fee</span>
+                                        <span className="font-medium">{formatCurrency(calculations.monthlyFee)}</span>
                                     </div>
+
+                                    {/* Rental Details */}
+
+                                    {/* {calculations.downPayment > 0 && (
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-muted-foreground">
+                                                {data.is_down_payment_paid_full ? 'Down Payment (Full)' : 'Down Payment (50%)'}
+                                            </span>
+                                            <span className="font-medium">{formatCurrency(calculations.monthlyFee)}</span>
+                                        </div>
+                                    )} */}
+
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Management Fee</span>
                                         <span className="font-medium">{formatCurrency(calculations.managementFee)}</span>
-                                    </div>
-
-                                    <Separator />
-
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-muted-foreground">Monthly Rental Fee</span>
-                                        <span className="font-medium">{formatCurrency(calculations.monthlyFee)}</span>
                                     </div>
 
                                     <div className="flex justify-between text-sm">
@@ -436,13 +565,52 @@ export default function CreateRentalRecord() {
                                         <span className="font-medium">{calculations.durationMonths} months</span>
                                     </div>
 
-                                    <div className="flex justify-between font-medium">
-                                        <span>Total Rental Fee</span>
-                                        <span>{formatCurrency(calculations.totalRentalFee)}</span>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-muted-foreground">Total Rental Cost</span>
+                                        <span className="font-medium">{formatCurrency(calculations.totalRentalCost)}</span>
                                     </div>
 
                                     <Separator />
 
+                                    {/* Initial Payments */}
+
+                                    {calculations.bookingFee > 0 && (
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-muted-foreground">Booking Fee</span>
+                                            <span className="font-medium">{formatCurrency(calculations.bookingFee)}</span>
+                                        </div>
+                                    )}
+
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-muted-foreground">Net Rental Cost</span>
+                                        <span className="font-medium">{formatCurrency(calculations.netRentalCost)}</span>
+                                    </div>
+
+                                    <Separator />
+
+                                    {/* Payment Breakdown */}
+                                    {calculations.paymentBreakdown.length > 0 && (
+                                        <>
+                                            <div>
+                                                <h4 className="mb-2 text-sm font-medium">Payment Schedule</h4>
+                                                <div className="flex justify-between space-y-2 text-sm">
+                                                    <span className="text-muted-foreground">Deposit Fee</span>
+                                                    <span className="font-medium">{formatCurrency(calculations.depositFee)}</span>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    {calculations.paymentBreakdown.map((payment, index) => (
+                                                        <div key={index} className="flex justify-between text-sm">
+                                                            <span className="text-muted-foreground">{payment.label}</span>
+                                                            <span className="font-medium">{formatCurrency(payment.amount)}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <Separator />
+                                        </>
+                                    )}
+
+                                    {/* Total Price */}
                                     <div className="space-y-2 rounded-lg bg-blue-50 p-3 dark:bg-blue-950/30">
                                         <div className="flex justify-between font-medium text-blue-800 dark:text-blue-300">
                                             <span>Total Price</span>
@@ -450,6 +618,7 @@ export default function CreateRentalRecord() {
                                         </div>
                                     </div>
 
+                                    {/* Rental Period */}
                                     {calculations.exitDate && (
                                         <>
                                             <Separator />

@@ -26,6 +26,7 @@ class User extends Authenticatable
         'telephone',
         'username',
         'gender',
+        'status',
         'guardian_name',
         'guardian_telephone',
         'image',

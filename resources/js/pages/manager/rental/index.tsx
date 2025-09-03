@@ -44,16 +44,18 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function RentalRecordList() {
-    
     const { rentals, filters } = usePage<RentalRecordPageProps>().props;
     const [search, setSearch] = useState(filters?.search || '');
     const [roomCategoryFilter, setRoomCategoryFilter] = useState(filters?.room_category || '');
     const [paymentTypeFilter, setPaymentTypeFilter] = useState(filters?.payment_type || '');
     const [rentalPeriodFilter, setRentalPeriodFilter] = useState(filters?.rental_period || '');
+    const [statusFilter, setStatusFilter] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(8);
     const [deleteId, setDeleteId] = useState<number | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [terminateId, setTerminateId] = useState<number | null>(null);
+    const [isTerminating, setIsTerminating] = useState(false);
 
     // Get unique values for filter dropdowns
     const filterOptions = useMemo(() => {
@@ -69,10 +71,13 @@ export default function RentalRecordList() {
             new Set(rentals.map((rental) => rental.rental_period?.month).filter((period) => period !== null && period !== undefined)),
         ).sort((a, b) => a - b);
 
+        const statuses = Array.from(new Set(rentals.map((rental) => rental.status).filter(Boolean)));
+
         return {
             roomCategories: roomCategories.sort(),
             paymentTypes: paymentTypes.sort(),
             rentalPeriods,
+            statuses: statuses.sort(),
         };
     }, [rentals]);
 
@@ -109,7 +114,13 @@ export default function RentalRecordList() {
                 matchesRentalPeriod = rental.rental_period?.month?.toString() === rentalPeriodFilter;
             }
 
-            return matchesSearch && matchesRoomCategory && matchesPaymentType && matchesRentalPeriod;
+            // Status filter
+            let matchesStatus = true;
+            if (statusFilter) {
+                matchesStatus = rental.status?.toLowerCase() === statusFilter.toLowerCase();
+            }
+
+            return matchesSearch && matchesRoomCategory && matchesPaymentType && matchesRentalPeriod && matchesStatus;
         });
 
         // Calculate pagination
@@ -127,7 +138,7 @@ export default function RentalRecordList() {
             totalPages: pages,
             totalItems: total,
         };
-    }, [rentals, search, roomCategoryFilter, paymentTypeFilter, rentalPeriodFilter, currentPage, itemsPerPage]);
+    }, [rentals, search, roomCategoryFilter, paymentTypeFilter, rentalPeriodFilter, statusFilter, currentPage, itemsPerPage]);
 
     // Reset to first page when filters change
     const handleSearchChange = (value: string) => {
@@ -173,6 +184,11 @@ export default function RentalRecordList() {
 
     const clearRentalPeriodFilter = () => {
         setRentalPeriodFilter('');
+        setCurrentPage(1);
+    };
+
+    const clearStatusFilter = () => {
+        setStatusFilter('');
         setCurrentPage(1);
     };
 
@@ -224,7 +240,8 @@ export default function RentalRecordList() {
     const toItem = Math.min(currentPage * itemsPerPage, totalItems);
 
     // Get active filter count and description
-    const activeFiltersCount = (search ? 1 : 0) + (roomCategoryFilter ? 1 : 0) + (paymentTypeFilter ? 1 : 0) + (rentalPeriodFilter ? 1 : 0);
+    const activeFiltersCount =
+        (search ? 1 : 0) + (roomCategoryFilter ? 1 : 0) + (paymentTypeFilter ? 1 : 0) + (rentalPeriodFilter ? 1 : 0) + (statusFilter ? 1 : 0);
     const getFilterDescription = () => {
         const parts = [];
         if (search) parts.push(`"${search}"`);
@@ -261,6 +278,36 @@ export default function RentalRecordList() {
         }
 
         return <Badge variant="error">{type}</Badge>;
+    };
+
+    const getRentalStatusBadge = (status?: string) => {
+        const normalizedStatus = status?.toLowerCase();
+
+        if (normalizedStatus === 'booked') {
+            return <Badge variant="warning">{status}</Badge>;
+        } else if (normalizedStatus === 'occupied') {
+            return <Badge variant="info">{status}</Badge>;
+        } else if (normalizedStatus === 'completed') {
+            return <Badge variant="success">{status}</Badge>;
+        }
+
+        return <Badge variant="error">{status}</Badge>;
+    };
+
+    const handleTerminate = async (id: number) => {
+        setIsTerminating(true);
+        router.post(
+            `/manager/rental/${id}/terminate`,
+            {},
+            {
+                onSuccess: () => {
+                    setTerminateId(null);
+                },
+                onFinish: () => {
+                    setIsTerminating(false);
+                },
+            },
+        );
     };
 
     return (
@@ -355,6 +402,29 @@ export default function RentalRecordList() {
                                             </SelectContent>
                                         </Select>
                                     </div>
+
+                                    {/* Status Filter */}
+                                    <div className="relative">
+                                        <Filter className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                        <Select
+                                            value={statusFilter}
+                                            onValueChange={(value) => {
+                                                setStatusFilter(value);
+                                                setCurrentPage(1);
+                                            }}
+                                        >
+                                            <SelectTrigger className="w-full pl-10 lg:w-[160px]">
+                                                <SelectValue placeholder="Status" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {filterOptions.statuses.map((status) => (
+                                                    <SelectItem key={status} value={status}>
+                                                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 </div>
                             </div>
 
@@ -389,6 +459,13 @@ export default function RentalRecordList() {
                                         </Button>
                                     )}
 
+                                    {statusFilter && (
+                                        <Button type="button" variant="outline" size="sm" onClick={clearStatusFilter}>
+                                            <X className="mr-2 h-4 w-4" />
+                                            Clear Status
+                                        </Button>
+                                    )}
+
                                     {activeFiltersCount > 1 && (
                                         <Button type="button" variant="outline" size="sm" onClick={clearAllFilters}>
                                             <X className="mr-2 h-4 w-4" />
@@ -405,9 +482,9 @@ export default function RentalRecordList() {
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>Tenant</TableHead>
                                         <TableHead>Room</TableHead>
-                                        <TableHead>Category</TableHead>
+                                        <TableHead>Tenant</TableHead>
+                                        <TableHead>Status</TableHead>
                                         <TableHead>Entry Date</TableHead>
                                         <TableHead>Exit Date</TableHead>
                                         <TableHead>Payment Type</TableHead>
@@ -430,12 +507,18 @@ export default function RentalRecordList() {
                                             <TableRow key={rental.id}>
                                                 <TableCell>
                                                     <div>
+                                                        <div className="font-medium">{rental.room?.name}</div>
+                                                        <div className="text-sm text-muted-foreground">{rental.room?.room_category?.name}</div>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div>
                                                         <div className="font-medium">{rental.user?.name}</div>
                                                         <div className="text-sm text-muted-foreground">{rental.user?.email}</div>
                                                     </div>
                                                 </TableCell>
-                                                <TableCell className="font-medium">{rental.room?.name}</TableCell>
-                                                <TableCell>{rental.room?.room_category?.name}</TableCell>
+
+                                                <TableCell>{getRentalStatusBadge(rental.status)}</TableCell>
                                                 <TableCell>{formatDate(rental.entry_date)}</TableCell>
                                                 <TableCell>{rental.exit_date ? formatDate(rental.exit_date) : '-'}</TableCell>
                                                 <TableCell>{getPaymentTypeBadge(rental.payment_type?.name)}</TableCell>
@@ -456,16 +539,30 @@ export default function RentalRecordList() {
                                                                     View
                                                                 </Link>
                                                             </DropdownMenuItem>
-                                                            <DropdownMenuItem className="text-yellow-600" asChild>
-                                                                <Link href={`/manager/rental/${rental.id}/edit`}>
-                                                                    <Edit className="mr-2 h-4 w-4 text-yellow-600" />
-                                                                    Edit
-                                                                </Link>
+                                                            <DropdownMenuItem asChild>
+                                                                {rental.status === 'booked' && (
+                                                                    <Link
+                                                                        href={`/manager/rental/${rental.id}/edit`}
+                                                                        className="inline-flex items-center text-yellow-600 hover:underline"
+                                                                    >
+                                                                        <Edit className="mr-2 h-4 w-4 text-yellow-600" />
+                                                                        Edit
+                                                                    </Link>
+                                                                )}
                                                             </DropdownMenuItem>
                                                             <DropdownMenuItem className="text-red-600" onClick={() => setDeleteId(rental.id)}>
                                                                 <Trash2 className="mr-2 h-4 w-4 text-red-600" />
                                                                 Delete
                                                             </DropdownMenuItem>
+                                                            {rental.status !== 'terminated' && (
+                                                                <DropdownMenuItem
+                                                                    className="text-orange-600"
+                                                                    onClick={() => setTerminateId(rental.id)}
+                                                                >
+                                                                    <X className="mr-2 h-4 w-4 text-orange-600" />
+                                                                    Terminate
+                                                                </DropdownMenuItem>
+                                                            )}
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
                                                 </TableCell>
@@ -554,6 +651,29 @@ export default function RentalRecordList() {
                             className="bg-red-600 hover:bg-red-700"
                         >
                             {isDeleting ? 'Deleting...' : 'Delete'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Terminate Confirmation Dialog */}
+            <AlertDialog open={!!terminateId} onOpenChange={() => setTerminateId(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Terminate Rental?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will mark the rental as <strong>terminated</strong>. Tenants will no longer be able to use this room under this
+                            record.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => terminateId && handleTerminate(terminateId)}
+                            disabled={isTerminating}
+                            className="bg-orange-600 hover:bg-orange-700"
+                        >
+                            {isTerminating ? 'Terminating...' : 'Terminate'}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
