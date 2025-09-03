@@ -23,10 +23,12 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight, Edit, Eye, Filter, MoreHorizontal, Plus, Search, Trash2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
+
 interface RoomPageProps extends PageProps {
     rooms: Room[];
     filters: {
         search?: string;
+        status?: string; 
         category?: string;
     };
 }
@@ -45,6 +47,7 @@ export default function RoomList() {
     const { rooms, filters } = usePage<RoomPageProps>().props;
     const [search, setSearch] = useState(filters?.search || '');
     const [categoryFilter, setCategoryFilter] = useState(filters?.category || '');
+    const [statusFilter, setStatusFilter] = useState(filters?.status || '');
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(8);
     const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -80,7 +83,13 @@ export default function RoomList() {
                 matchesCategory = room.room_category?.id.toString() === categoryFilter;
             }
 
-            return matchesSearch && matchesCategory;
+            // Status filter
+            let matchesStatus = true;
+            if (statusFilter) {
+                matchesStatus = room.occupancy_status?.toLowerCase() === statusFilter.toLowerCase();
+            }
+
+            return matchesSearch && matchesCategory && matchesStatus;
         });
 
         // Calculate pagination
@@ -98,7 +107,7 @@ export default function RoomList() {
             totalPages: pages,
             totalItems: total,
         };
-    }, [rooms, search, categoryFilter, currentPage, itemsPerPage]);
+    }, [rooms, search, categoryFilter, statusFilter, currentPage, itemsPerPage]);
 
     // Reset to first page when search changes
     const handleSearchChange = (value: string) => {
@@ -109,6 +118,12 @@ export default function RoomList() {
     // Reset to first page when category filter changes
     const handleCategoryFilterChange = (value: string) => {
         setCategoryFilter(value);
+        setCurrentPage(1);
+    };
+
+    // Reset to first page when status filter changes
+    const handleStatusFilterChange = (value: string) => {
+        setStatusFilter(value);
         setCurrentPage(1);
     };
 
@@ -127,6 +142,13 @@ export default function RoomList() {
     // Clear category filter and reset pagination
     const clearCategoryFilter = () => {
         setCategoryFilter('');
+        setStatusFilter('');
+        setCurrentPage(1);
+    };
+
+    // Clear status filter and reset pagination
+    const clearStatusFilter = () => {
+        setStatusFilter('');
         setCurrentPage(1);
     };
 
@@ -176,15 +198,35 @@ export default function RoomList() {
     const toItem = Math.min(currentPage * itemsPerPage, totalItems);
 
     // Get active filter count and description
-    const activeFiltersCount = (search ? 1 : 0) + (categoryFilter ? 1 : 0);
+    const activeFiltersCount = (search ? 1 : 0) + (categoryFilter ? 1 : 0) + (statusFilter ? 1 : 0);
     const getFilterDescription = () => {
         const parts = [];
         if (search) parts.push(`"${search}"`);
+
         if (categoryFilter) {
             const selectedCategory = availableCategories.find((cat) => cat?.id.toString() === categoryFilter);
             if (selectedCategory) parts.push(`Category: ${selectedCategory.name}`);
         }
+
+        if (statusFilter) {
+            parts.push(`Status: ${statusFilter}`);
+        }
+        
         return parts.join(' • ');
+    };
+
+    const getRoomStatusBadge = (status?: string) => {
+        const normalizedStatus = status?.toLowerCase();
+
+        if (normalizedStatus === 'reserved') {
+            return <Badge variant="warning">{status}</Badge>;
+        } else if (normalizedStatus === 'occupied') {
+            return <Badge variant="info">{status}</Badge>;
+        } else if (normalizedStatus === 'available') {
+            return <Badge variant="success">{status}</Badge>;
+        }
+
+        return <Badge variant="error">{status}</Badge>;
     };
 
     return (
@@ -245,6 +287,20 @@ export default function RoomList() {
                                             </SelectContent>
                                         </Select>
                                     </div>
+
+                                    <div className="relative">
+                                        <Filter className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                        <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
+                                            <SelectTrigger className="w-full pl-10 lg:w-[150px]">
+                                                <SelectValue placeholder="Status" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="available">Available</SelectItem>
+                                                <SelectItem value="reserved">Reserved</SelectItem>
+                                                <SelectItem value="occupied">Occupied</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 </div>
                             </div>
 
@@ -262,6 +318,13 @@ export default function RoomList() {
                                         <Button type="button" variant="outline" size="sm" onClick={clearCategoryFilter}>
                                             <X className="mr-2 h-4 w-4" />
                                             Clear Category
+                                        </Button>
+                                    )}
+
+                                    {statusFilter && (
+                                        <Button type="button" variant="outline" size="sm" onClick={clearStatusFilter}>
+                                            <X className="mr-2 h-4 w-4" />
+                                            Clear Status
                                         </Button>
                                     )}
 
@@ -286,7 +349,7 @@ export default function RoomList() {
                                         <TableHead>Category</TableHead>
                                         <TableHead>Monthly Fee</TableHead>
                                         <TableHead>Occupancy</TableHead>
-                                        <TableHead>Condition</TableHead>
+                                        {/* <TableHead>Condition</TableHead> */}
                                         <TableHead>Description</TableHead>
                                         <TableHead className="w-[100px]">Actions</TableHead>
                                     </TableRow>
@@ -317,12 +380,10 @@ export default function RoomList() {
                                                 <TableCell className="font-medium">{room.name}</TableCell>
                                                 <TableCell>{room.room_category?.name}</TableCell>
                                                 <TableCell>{formatCurrency(room.room_category?.monthly_rental_fee || 0)}</TableCell>
-                                                <TableCell>
-                                                    <Badge variant="success">Available</Badge>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge variant="warning">In Maintenance</Badge>
-                                                </TableCell>
+                                                <TableCell>{getRoomStatusBadge(room.occupancy_status)}</TableCell>
+                                                {/* <TableCell>
+                                                    <Badge variant="success">clean</Badge>
+                                                </TableCell> */}
                                                 <TableCell className="max-w-[150px]">
                                                     <div className="truncate" title={room.description}>
                                                         {room.description || '-'}

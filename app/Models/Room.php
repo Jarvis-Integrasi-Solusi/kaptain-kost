@@ -9,6 +9,30 @@ class Room extends Model
     protected $table = 'rooms';
     protected $guarded = ['id', 'created_at', 'updated_at'];
 
+    protected $appends = ['occupancy_status'];
+    public function getOccupancyStatusAttribute()
+    {
+        $latestRental = $this->rentals()->latest('created_at')->first();
+
+        if (!$latestRental) {
+            return 'available';
+        }
+
+        if (in_array($latestRental->status, ['completed', 'terminated'])) {
+            return 'available';
+        }
+
+        if ($latestRental->status === 'booked') {
+            return 'reserved';
+        }
+
+        if ($latestRental->status === 'occupied') {
+            return 'occupied';
+        }
+
+        return 'available';
+    }
+
     public function company()
     {
         return $this->belongsTo(Company::class);

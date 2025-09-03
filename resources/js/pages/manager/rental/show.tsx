@@ -230,7 +230,6 @@ export default function RentalDetail() {
                                             </div>
                                             <div className="space-y-2">
                                                 <Label className="text-sm font-medium">Booking Fee</Label>
- 
                                             </div>
                                             <div className="space-y-2">
                                                 <Label className="text-sm font-medium">Entry Date</Label>
@@ -405,7 +404,8 @@ export default function RentalDetail() {
                     </div>
 
                     {/* Payment History - Full Width */}
-                    <Card>
+
+                    <Card className="w-full overflow-x-auto">
                         <CardHeader>
                             <CardTitle>Payment History</CardTitle>
                             <CardDescription>All payments made for this rental</CardDescription>

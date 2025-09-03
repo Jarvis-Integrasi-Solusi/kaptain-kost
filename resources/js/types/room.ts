@@ -7,6 +7,7 @@ export interface Room {
     image?: string;
     room_category_id: number;
     room_category: RoomCategory;
+    occupancy_status: 'available' | 'reserved' | 'occupied' | 'unavailable';
     created_at?: string;
     updated_at?: string;
 }
