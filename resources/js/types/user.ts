@@ -10,6 +10,7 @@ export interface User {
     guardian_name?: string;
     guardian_telephone?: string;
     email_verified_at?: string;
+    status?: 'active' | 'inactive';
     company_id?: number;
     company?: {
         id: number;

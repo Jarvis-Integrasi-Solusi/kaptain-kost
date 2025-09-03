@@ -11,6 +11,7 @@ use App\Http\Controllers\Manager\Room\RoomController;
 use App\Http\Controllers\Manager\User\ManagerController;
 use App\Http\Controllers\Manager\User\OperatorController;
 use App\Http\Controllers\Manager\User\TenantController;
+use App\Http\Controllers\Manager\User\UserController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -73,6 +74,8 @@ Route::middleware(['auth', 'verified', 'role:manager'])->prefix('manager')->grou
 
     // User Management
     Route::prefix('user')->group(function () {
+        Route::post('/{id}/deactivate', [UserController::class, 'deactivate'])->name('manager.user.deactivate');
+
         Route::get('/manager', [ManagerController::class, 'index'])->name('manager.user.manager.index');
         Route::get('/manager/create', [ManagerController::class, 'create'])->name('manager.user.manager.create');
         Route::post('/manager', [ManagerController::class, 'store'])->name('manager.user.manager.store');

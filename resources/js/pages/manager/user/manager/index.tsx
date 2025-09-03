@@ -8,12 +8,15 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useInitials } from '@/hooks/use-initials';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type PageProps } from '@/types';
 import { User } from '@/types/user';
@@ -48,6 +51,10 @@ export default function ManagerList() {
     const [itemsPerPage, setItemsPerPage] = useState(8);
     const [deleteId, setDeleteId] = useState<number | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [deactivateId, setDeactivateId] = useState<number | null>(null);
+    const [isDeactivating, setIsDeactivating] = useState(false);
+
+    const getInitials = useInitials();
 
     // Filter and paginate data using useMemo
     const { paginatedData, totalPages, totalItems } = useMemo(() => {
@@ -129,6 +136,34 @@ export default function ManagerList() {
         });
     };
 
+    const handleDeactivate = async (id: number) => {
+        setIsDeactivating(true);
+        router.post(
+            `/manager/user/${id}/deactivate`,
+            {},
+            {
+                onSuccess: () => {
+                    setDeactivateId(null);
+                },
+                onFinish: () => {
+                    setIsDeactivating(false);
+                },
+            },
+        );
+    };
+
+    const getStatusBadge = (status?: string) => {
+        const normalizedStatus = status?.toLowerCase();
+
+        if (normalizedStatus === 'active') {
+            return <Badge variant="success">{status}</Badge>;
+        } else if (normalizedStatus === 'inactive') {
+            return <Badge variant="error">{status}</Badge>;
+        }
+
+        return <Badge variant="default">{status}</Badge>;
+    };
+
     // Format date
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('en-US', {
@@ -196,6 +231,7 @@ export default function ManagerList() {
                                         <TableHead>Name</TableHead>
                                         <TableHead>Email</TableHead>
                                         <TableHead>Username</TableHead>
+                                        <TableHead>Status</TableHead>
                                         <TableHead>Joined</TableHead>
                                         <TableHead className="w-[100px]">Actions</TableHead>
                                     </TableRow>
@@ -214,24 +250,18 @@ export default function ManagerList() {
                                             <TableRow key={manager.id}>
                                                 <TableCell className="font-medium">
                                                     <div className="flex items-center gap-2">
-                                                        {manager.image ? (
-                                                            <img
-                                                                src={`/storage/${manager.image}`}
-                                                                alt={manager.name}
-                                                                className="h-8 w-8 rounded-full object-cover"
-                                                            />
-                                                        ) : (
-                                                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
-                                                                <span className="text-sm font-medium text-blue-600">
-                                                                    {manager.name?.charAt(0).toUpperCase()}
-                                                                </span>
-                                                            </div>
-                                                        )}
-                                                        {manager.name}
+                                                        <Avatar className="h-8 w-8 overflow-hidden rounded-full">
+                                                            <AvatarImage src={manager.image} alt={manager.name} />
+                                                            <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
+                                                                {getInitials(manager.name)}
+                                                            </AvatarFallback>
+                                                        </Avatar>
+                                                        <span className="font-medium"> {manager.name}</span>
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>{manager.email}</TableCell>
                                                 <TableCell>{manager.username || '-'}</TableCell>
+                                                <TableCell>{getStatusBadge(manager.status)}</TableCell>
                                                 <TableCell>{manager.created_at ? formatDate(manager.created_at) : '-'}</TableCell>
                                                 <TableCell>
                                                     <DropdownMenu>
@@ -258,6 +288,15 @@ export default function ManagerList() {
                                                                 <Trash2 className="mr-2 h-4 w-4 text-red-600" />
                                                                 Delete
                                                             </DropdownMenuItem>
+                                                            {manager.status === 'active' && (
+                                                                <DropdownMenuItem
+                                                                    className="text-orange-600"
+                                                                    onClick={() => setDeactivateId(manager.id)}
+                                                                >
+                                                                    <X className="mr-2 h-4 w-4 text-orange-600" />
+                                                                    Deactivate
+                                                                </DropdownMenuItem>
+                                                            )}
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
                                                 </TableCell>
@@ -337,7 +376,7 @@ export default function ManagerList() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will permanently delete the tenant account. This action cannot be undone.
+                            This will permanently delete the manager account. This action cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -348,6 +387,28 @@ export default function ManagerList() {
                             className="bg-red-600 hover:bg-red-700"
                         >
                             {isDeleting ? 'Deleting...' : 'Delete'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Deactivate Confirmation Dialog */}
+            <AlertDialog open={!!deactivateId} onOpenChange={() => setDeactivateId(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Deactivate Manager?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will deactivate the manager account. The user won’t be able to log in until reactivated.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => deactivateId && handleDeactivate(deactivateId)}
+                            disabled={isDeactivating}
+                            className="bg-orange-600 hover:bg-orange-700"
+                        >
+                            {isDeactivating ? 'Deactivating...' : 'Deactivate'}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
