@@ -31,11 +31,11 @@ const managerNavGroups: NavGroup[] = [
                 href: '/manager/user/manager',
                 icon: UserCog,
             },
-            {
-                title: 'Operator',
-                href: '/manager/user/operator',
-                icon: Wrench,
-            },
+            // {
+            //     title: 'Operator',
+            //     href: '/manager/user/operator',
+            //     icon: Wrench,
+            // },
             {
                 title: 'Tenant',
                 href: '/manager/user/tenant',

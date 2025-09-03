@@ -84,13 +84,13 @@ Route::middleware(['auth', 'verified', 'role:manager'])->prefix('manager')->grou
         Route::put('/manager/{id}', [ManagerController::class, 'update'])->name('manager.user.manager.update');
         Route::delete('/manager/{id}', [ManagerController::class, 'destroy'])->name('manager.user.manager.destroy');
 
-        Route::get('/operator', [OperatorController::class, 'index'])->name('manager.user.operator.index');
-        Route::get('/operator/create', [OperatorController::class, 'create'])->name('manager.user.operator.create');
-        Route::post('/operator', [OperatorController::class, 'store'])->name('manager.user.operator.store');
-        Route::get('/operator/{id}', [OperatorController::class, 'show'])->name('manager.user.operator.show');
-        Route::get('/operator/{id}/edit', [OperatorController::class, 'edit'])->name('manager.user.operator.edit');
-        Route::put('/operator/{id}', [OperatorController::class, 'update'])->name('manager.user.operator.update');
-        Route::delete('/operator/{id}', [OperatorController::class, 'destroy'])->name('manager.user.operator.destroy');
+        // Route::get('/operator', [OperatorController::class, 'index'])->name('manager.user.operator.index');
+        // Route::get('/operator/create', [OperatorController::class, 'create'])->name('manager.user.operator.create');
+        // Route::post('/operator', [OperatorController::class, 'store'])->name('manager.user.operator.store');
+        // Route::get('/operator/{id}', [OperatorController::class, 'show'])->name('manager.user.operator.show');
+        // Route::get('/operator/{id}/edit', [OperatorController::class, 'edit'])->name('manager.user.operator.edit');
+        // Route::put('/operator/{id}', [OperatorController::class, 'update'])->name('manager.user.operator.update');
+        // Route::delete('/operator/{id}', [OperatorController::class, 'destroy'])->name('manager.user.operator.destroy');
 
         Route::get('/tenant', [TenantController::class, 'index'])->name('manager.user.tenant.index');
         Route::get('/tenant/create', [TenantController::class, 'create'])->name('manager.user.tenant.create');
