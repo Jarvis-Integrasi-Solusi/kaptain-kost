@@ -21,7 +21,6 @@ return new class extends Migration
             $table->enum('payment_status', ['paid', 'unpaid']);
             $table->enum('payment_method', ['cash', 'payment_gateway'])->nullable();
             $table->string('payment_proof')->nullable();
-            $table->string('deposit_refund_proof')->nullable();
             $table->boolean('is_deposit_refunded')->default(false);
             $table->timestamps();
         });

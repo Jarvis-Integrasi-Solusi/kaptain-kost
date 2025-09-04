@@ -690,4 +690,46 @@ class RecordController extends Controller
         }
     }
 
+    public function setOccupied(string $id) 
+    {
+        $user = Auth::user();
+
+        $rental = Rental::where('id', $id)
+            ->where('company_id', $user->company_id)
+            ->firstOrFail();
+
+        if ($rental->status === 'occupied') {
+            return redirect()->back()
+                ->with('error', [
+                    'title' => 'Rental Already Occupied',
+                    'message' => 'This rental record is already marked as occupied.'
+                ]);
+        }
+
+        if ($rental->status !== 'reserved') {
+            return redirect()->back()
+                ->with('error', [
+                    'title' => 'Invalid Status',
+                    'message' => 'Only rentals with status "booked" can be set to occupied.'
+                ]);
+        }
+
+        try {
+            $rental->status = 'occupied';
+            $rental->save();
+
+            return redirect()->back()
+                ->with('success', [
+                    'title' => 'Rental Occupied',
+                    'message' => 'The rental has been successfully set to occupied.'
+                ]);
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', [
+                    'title' => 'Error!',
+                    'message' => 'An error occurred while setting the rental to occupied. Please try again.'
+                ]);
+        }
+    }
+
 }

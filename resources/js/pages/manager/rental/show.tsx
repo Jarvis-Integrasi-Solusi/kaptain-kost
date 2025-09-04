@@ -1,3 +1,13 @@
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,8 +22,9 @@ import { type BreadcrumbItem, type PageProps } from '@/types';
 import { PaymentSummary } from '@/types/payment-summary';
 import { Rental } from '@/types/rental';
 import { formatCurrency } from '@/utils/format';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Check, CreditCard, Edit, X } from 'lucide-react';
+import { useState } from 'react';
 
 interface RentalDetailPageProps extends PageProps {
     rental: Rental;
@@ -35,6 +46,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function RentalDetail() {
     const { rental, paymentSummary } = usePage<RentalDetailPageProps>().props;
+    const [selectedPaymentId, setSelectedPaymentId] = useState<number | null>(null);
+    const [isMarkingPaid, setIsMarkingPaid] = useState(false);
 
     // Fixed format date function to handle null/empty dates
     const formatDate = (dateString: string | null | undefined) => {
@@ -82,6 +95,24 @@ export default function RentalDetail() {
         }
 
         return <Badge variant="secondary">{status}</Badge>;
+    };
+
+    // Handle Mark as Paid
+    const handleMarkAsPaid = (id: number) => {
+        setIsMarkingPaid(true);
+        router.post(
+            `/manager/rental/payment/${id}/mark-as-paid`,
+            {},
+            {
+                onSuccess: () => {
+                    setSelectedPaymentId(null);
+                    setIsMarkingPaid(false);
+                },
+                onError: () => {
+                    setIsMarkingPaid(false);
+                },
+            },
+        );
     };
 
     // Calculate rental duration
@@ -239,6 +270,7 @@ export default function RentalDetail() {
                                             </div>
                                             <div className="space-y-2">
                                                 <Label className="text-sm font-medium">Booking Fee</Label>
+                                                <Input value={bookingFee > 0 ? formatCurrency(bookingFee) : '-'} disabled className="bg-muted" />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label className="text-sm font-medium">Entry Date</Label>
@@ -467,21 +499,23 @@ export default function RentalDetail() {
                                                     <TableCell>
                                                         <TooltipProvider>
                                                             <div className="flex gap-1">
-                                                                <Tooltip>
-                                                                    <TooltipTrigger asChild>
-                                                                        <Button
-                                                                            variant="outline"
-                                                                            size="sm"
-                                                                            className="h-8 w-8 p-0"
-                                                                            disabled={payment.payment_status.toLowerCase() === 'paid'}
-                                                                        >
-                                                                            <CreditCard className="h-4 w-4" />
-                                                                        </Button>
-                                                                    </TooltipTrigger>
-                                                                    <TooltipContent>
-                                                                        <p>Mark as Paid</p>
-                                                                    </TooltipContent>
-                                                                </Tooltip>
+                                                                {payment.payment_status.toLowerCase() !== 'paid' && (
+                                                                    <Tooltip>
+                                                                        <TooltipTrigger asChild>
+                                                                            <Button
+                                                                                variant="outline"
+                                                                                size="sm"
+                                                                                className="h-8 w-8 p-0"
+                                                                                onClick={() => setSelectedPaymentId(payment.id)}
+                                                                            >
+                                                                                <CreditCard className="h-4 w-4" />
+                                                                            </Button>
+                                                                        </TooltipTrigger>
+                                                                        <TooltipContent>
+                                                                            <p>Mark as Paid</p>
+                                                                        </TooltipContent>
+                                                                    </Tooltip>
+                                                                )}
 
                                                                 {/* <Tooltip>
                                                                     <TooltipTrigger asChild>
@@ -525,6 +559,27 @@ export default function RentalDetail() {
                     </Card>
                 </div>
             </div>
+
+            <AlertDialog open={!!selectedPaymentId} onOpenChange={() => setSelectedPaymentId(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Mark Payment as Paid?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will update the status of this payment record to <strong>Paid</strong>.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setSelectedPaymentId(null)}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => selectedPaymentId && handleMarkAsPaid(selectedPaymentId)}
+                            disabled={isMarkingPaid}
+                            className="bg-green-600 hover:bg-green-700"
+                        >
+                            {isMarkingPaid ? 'Marking...' : 'Mark as Paid'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </AppLayout>
     );
 }

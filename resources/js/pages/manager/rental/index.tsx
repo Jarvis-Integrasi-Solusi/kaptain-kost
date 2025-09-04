@@ -56,6 +56,8 @@ export default function RentalRecordList() {
     const [isDeleting, setIsDeleting] = useState(false);
     const [terminateId, setTerminateId] = useState<number | null>(null);
     const [isTerminating, setIsTerminating] = useState(false);
+    const [occupiedId, setOccupiedId] = useState<number | null>(null);
+    const [isOccupying, setIsOccupying] = useState(false);
 
     // Get unique values for filter dropdowns
     const filterOptions = useMemo(() => {
@@ -285,6 +287,8 @@ export default function RentalRecordList() {
 
         if (normalizedStatus === 'booked') {
             return <Badge variant="warning">{status}</Badge>;
+        }  else if (normalizedStatus === 'reserved') {
+            return <Badge variant="default">{status}</Badge>;
         } else if (normalizedStatus === 'occupied') {
             return <Badge variant="info">{status}</Badge>;
         } else if (normalizedStatus === 'completed') {
@@ -305,6 +309,22 @@ export default function RentalRecordList() {
                 },
                 onFinish: () => {
                     setIsTerminating(false);
+                },
+            },
+        );
+    };
+
+    const handleSetOccupied = async (id: number) => {
+        setIsOccupying(true);
+        router.post(
+            `/manager/rental/${id}/set-occupied`,
+            {},
+            {
+                onSuccess: () => {
+                    setOccupiedId(null);
+                },
+                onFinish: () => {
+                    setIsOccupying(false);
                 },
             },
         );
@@ -550,6 +570,12 @@ export default function RentalRecordList() {
                                                                     </Link>
                                                                 )}
                                                             </DropdownMenuItem>
+                                                            {rental.status === 'reserved' && (
+                                                                <DropdownMenuItem className="text-blue-600" onClick={() => setOccupiedId(rental.id)}>
+                                                                    <ChevronRight className="mr-2 h-4 w-4 text-blue-600" />
+                                                                    Set as Occupied
+                                                                </DropdownMenuItem>
+                                                            )}
                                                             <DropdownMenuItem className="text-red-600" onClick={() => setDeleteId(rental.id)}>
                                                                 <Trash2 className="mr-2 h-4 w-4 text-red-600" />
                                                                 Delete
@@ -674,6 +700,28 @@ export default function RentalRecordList() {
                             className="bg-orange-600 hover:bg-orange-700"
                         >
                             {isTerminating ? 'Terminating...' : 'Terminate'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Set Occupied Confirmation Dialog */}
+            <AlertDialog open={!!occupiedId} onOpenChange={() => setOccupiedId(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Set Rental as Occupied?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will mark the rental as <strong>occupied</strong>. The tenant will now be considered as officially moved in.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => occupiedId && handleSetOccupied(occupiedId)}
+                            disabled={isOccupying}
+                            className="bg-blue-600 hover:bg-blue-700"
+                        >
+                            {isOccupying ? 'Processing...' : 'Set as Occupied'}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

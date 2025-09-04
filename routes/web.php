@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Manager\Rental\PaymentController as RentalPaymentController;
 use App\Http\Controllers\Manager\Rental\PaymentTypeController;
 use App\Http\Controllers\Manager\Rental\PeriodController;
 use App\Http\Controllers\Manager\Rental\RecordController;
@@ -70,6 +71,10 @@ Route::middleware(['auth', 'verified', 'role:manager'])->prefix('manager')->grou
         Route::put('/{id}', [RecordController::class, 'update'])->name('manager.rental.record.update');
         Route::delete('/{id}', [RecordController::class, 'destroy'])->name('manager.rental.record.destroy');
         Route::post('/{id}/terminate', [RecordController::class, 'terminate'])->name('manager.rental.record.terminate');
+        Route::post('/{id}/set-occupied', [RecordController::class, 'setOccupied'])->name('manager.rental.record.set-occupied');
+
+        // payment
+        Route::post('/payment/{id}/mark-as-paid', [RentalPaymentController::class, 'markAsPaid'])->name('manager.rental.payment.mark-as-paid');
     });
 
     // User Management
