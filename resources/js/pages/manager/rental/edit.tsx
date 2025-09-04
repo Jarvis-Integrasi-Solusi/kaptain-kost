@@ -103,6 +103,7 @@ export default function EditRentalRecord() {
                 downPayment: 0,
                 remainingPayment: 0,
                 totalPrice: 0,
+                rentalCost: 0,
                 exitDate: null,
                 durationMonths: 0,
                 paymentBreakdown: [],
@@ -116,7 +117,8 @@ export default function EditRentalRecord() {
 
         // Calculate total rental cost
         const totalRentalCost = (monthlyFee + managementFee) * selectedPeriod.month;
-        const netRentalCost = totalRentalCost - bookingFee;
+        const rentalCost = totalRentalCost - bookingFee;
+        const netRentalCost = totalRentalCost - bookingFee + depositFee;
 
         // Calculate payments based on payment type and down payment settings
         let downPayment = 0;
@@ -128,7 +130,7 @@ export default function EditRentalRecord() {
                 if (data.is_down_payment_paid_full) {
                     downPayment = netRentalCost;
                     remainingPayment = 0;
-                    paymentBreakdown = [{ label: 'Down Payment (Full)', amount: downPayment, percentage: 100 }];
+                    paymentBreakdown = [{ label: 'Settlement (100%)', amount: downPayment, percentage: 100 }];
                 } else {
                     downPayment = netRentalCost * 0.5;
                     remainingPayment = netRentalCost * 0.5;
@@ -183,6 +185,7 @@ export default function EditRentalRecord() {
             remainingPayment,
             totalPrice,
             exitDate,
+            rentalCost,
             durationMonths: selectedPeriod.month,
             paymentBreakdown,
         };
@@ -571,7 +574,7 @@ export default function EditRentalRecord() {
 
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Net Rental Cost</span>
-                                        <span className="font-medium">{formatCurrency(calculations.netRentalCost)}</span>
+                                        <span className="font-medium">{formatCurrency(calculations.rentalCost)}</span>
                                     </div>
 
                                     <Separator />
@@ -604,6 +607,7 @@ export default function EditRentalRecord() {
                                             <span>Total Price</span>
                                             <span className="text-lg">{formatCurrency(calculations.totalPrice)}</span>
                                         </div>
+                                        <p className="text-xs text-blue-600 dark:text-blue-400">*Total has been included by booking fee</p>
                                     </div>
 
                                     {/* Show price change comparison */}

@@ -38,23 +38,8 @@ public function createPaymentRecords()
         'entry_date' => $entryDate->toDateString(),
     ]);
 
-    // 1. Deposit Fee
-    $payments[] = [
-        'rental_id' => $this->id,
-        'billing_date' => $entryDate->toDateString(),
-        'amount' => $roomCategory->deposit_fee,
-        'category' => 'deposit_fee',
-        'payment_status' => 'unpaid',
-        'payment_method' => null,
-        'paid_at' => null,
-        'created_at' => now(),
-        'updated_at' => now()
-    ];
-    Log::info("✅ Deposit fee added", [
-        'amount' => $roomCategory->deposit_fee,
-    ]);
 
-    // 2. Booking Fee
+    // Booking Fee Payment Schedule if Exist
     if ($bookingFee) {
         $payments[] = [
             'rental_id' => $this->id,
@@ -72,11 +57,12 @@ public function createPaymentRecords()
         ]);
     }
 
-    // Kalkulasi
+    // Calculate
     $rentalMonths = $rentalPeriod->month;
     $totalRentalCost = ($roomCategory->monthly_rental_fee + $roomCategory->management_fee) * $rentalMonths;
     $bookingFeeAmount = $bookingFee ? $bookingFee->amount : 0;
-    $netRentalCost = $totalRentalCost - $bookingFeeAmount;
+    $depositFee = $roomCategory->deposit_fee;
+    $netRentalCost = $totalRentalCost - $bookingFeeAmount + $depositFee;
 
     Log::info("💰 Rental calculation", [
         'months' => $rentalMonths,
@@ -85,13 +71,13 @@ public function createPaymentRecords()
         'net_rental_cost' => $netRentalCost,
     ]);
 
-    // 3. Payment Type Handling
+    // 2. Payment Type Handling
     if ($paymentType->name === 'Cash') {
         $payments = array_merge($payments, $this->createCashPayments($entryDate, $netRentalCost));
     } elseif ($paymentType->name === 'Partial') {
         $payments = array_merge($payments, $this->createPartialPayments($entryDate, $netRentalCost));
     } elseif ($paymentType->name === 'Monthly') {
-        $payments = array_merge($payments, $this->createMonthlyPayments($entryDate, $roomCategory, $rentalMonths));
+        $payments = array_merge($payments, $this->createMonthlyPayments($entryDate, $roomCategory, $rentalMonths, $depositFee));
     }
 
     // Insert
@@ -205,13 +191,18 @@ private function createMonthlyPayments($entryDate, $roomCategory, $rentalMonths)
     $payments = [];
     $monthlyAmount = $roomCategory->monthly_rental_fee + $roomCategory->management_fee;
 
+    $deposit = $roomCategory->deposit_fee ?? 0;
+    $depositPerMonth = $deposit > 0 && $rentalMonths > 0 ? $deposit / $rentalMonths : 0;
+
     $currentBillingDate = $entryDate->copy();
 
     for ($i = 0; $i < $rentalMonths; $i++) {
+        $amount = $monthlyAmount + $depositPerMonth;
+
         $payments[] = [
             'rental_id' => $this->id,
             'billing_date' => $currentBillingDate->toDateString(),
-            'amount' => $monthlyAmount,
+            'amount' => $amount,
             'category' => 'rental_fee',
             'payment_status' => 'unpaid',
             'payment_method' => null,
@@ -219,10 +210,11 @@ private function createMonthlyPayments($entryDate, $roomCategory, $rentalMonths)
             'created_at' => now(),
             'updated_at' => now()
         ];
+
         Log::info("📆 Monthly rental fee created", [
             'month' => $i + 1,
             'date' => $currentBillingDate->toDateString(),
-            'amount' => $monthlyAmount
+            'amount' => $amount
         ]);
 
         $currentBillingDate->addMonth();

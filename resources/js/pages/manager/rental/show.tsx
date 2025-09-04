@@ -13,7 +13,7 @@ import { PaymentSummary } from '@/types/payment-summary';
 import { Rental } from '@/types/rental';
 import { formatCurrency } from '@/utils/format';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { Bell, Check, CreditCard, Edit, Trash2, X } from 'lucide-react';
+import { Check, CreditCard, Edit, X } from 'lucide-react';
 
 interface RentalDetailPageProps extends PageProps {
     rental: Rental;
@@ -95,8 +95,9 @@ export default function RentalDetail() {
 
     // Calculate costs similar to create page logic
     const totalRentalCost = (monthlyFee + managementFee) * rentalDuration;
-    const netRentalCost = totalRentalCost - bookingFee;
+    const netRentalCost = totalRentalCost - bookingFee + depositFee;
     const totalPrice = depositFee + totalRentalCost;
+    const totalPriceNoBookingFee = depositFee + (totalRentalCost - bookingFee);
 
     // Check if it's cash payment
     const isCashPayment = rental.payment_type?.name.toLowerCase() === 'cash';
@@ -108,7 +109,13 @@ export default function RentalDetail() {
 
         if (paymentType === 'cash') {
             if (rental.is_down_payment_paid_full) {
-                breakdown = [{ label: 'Down Payment (Full)', amount: netRentalCost, percentage: 100 }];
+                breakdown = [
+                    {
+                        label: 'Settlement (100%)',
+                        amount: netRentalCost,
+                        percentage: 100,
+                    },
+                ];
             } else {
                 breakdown = [
                     { label: 'Down Payment (50%)', amount: netRentalCost * 0.5, percentage: 50 },
@@ -124,16 +131,16 @@ export default function RentalDetail() {
             ];
         } else if (paymentType === 'monthly') {
             const monthlyPayment = monthlyFee + managementFee;
-            const totalMonthlyPayment = monthlyPayment * rentalDuration;
+            const depositPerMonth = depositFee / rentalDuration;
             breakdown = [
                 {
                     label: `Monthly Payment × ${rentalDuration}`,
-                    amount: monthlyPayment,
+                    amount: monthlyPayment + depositPerMonth,
                     percentage: null,
                 },
                 {
                     label: `Total Monthly Payment`,
-                    amount: totalMonthlyPayment,
+                    amount: (monthlyPayment + depositPerMonth) * rentalDuration,
                     percentage: null,
                 },
             ];
@@ -157,12 +164,14 @@ export default function RentalDetail() {
                             Rental record for {rental.user.name} in {rental.room.name}
                         </p>
                     </div>
-                    <Button variant="outline" asChild className="w-fit">
-                        <Link href={`/manager/rental/${rental.id}/edit`}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit Rental
-                        </Link>
-                    </Button>
+                    {rental.status === 'booked' && (
+                        <Button variant="outline" asChild className="w-fit">
+                            <Link href={`/manager/rental/${rental.id}/edit`}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit Rental
+                            </Link>
+                        </Button>
+                    )}
                 </div>
 
                 <div className="grid gap-6">
@@ -351,10 +360,25 @@ export default function RentalDetail() {
 
                                         {/* Total Price */}
                                         <div className="space-y-2 rounded-lg bg-blue-50 p-3 dark:bg-blue-950/30">
-                                            <div className="flex justify-between font-medium text-blue-800 dark:text-blue-300">
-                                                <span>Total Price</span>
-                                                <span className="text-lg">{formatCurrency(totalPrice)}</span>
-                                            </div>
+                                            {rental.status === 'booked' ? (
+                                                <>
+                                                    <div className="flex justify-between font-medium text-blue-800 dark:text-blue-300">
+                                                        <span>Total Price</span>
+                                                        <span className="text-lg">{formatCurrency(totalPrice)}</span>
+                                                    </div>
+                                                    <p className="text-xs text-blue-600 dark:text-blue-400">
+                                                        *Total has been included by booking fee
+                                                    </p>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div className="flex justify-between font-medium text-blue-800 dark:text-blue-300">
+                                                        <span>Total Price</span>
+                                                        <span className="text-lg">{formatCurrency(totalPriceNoBookingFee)}</span>
+                                                    </div>
+                                                    <p className="text-xs text-blue-600 dark:text-blue-400">*Total has been reduced by booking fee</p>
+                                                </>
+                                            )}
                                         </div>
 
                                         {/* Rental Period */}
@@ -459,7 +483,7 @@ export default function RentalDetail() {
                                                                     </TooltipContent>
                                                                 </Tooltip>
 
-                                                                <Tooltip>
+                                                                {/* <Tooltip>
                                                                     <TooltipTrigger asChild>
                                                                         <Button
                                                                             variant="outline"
@@ -487,7 +511,7 @@ export default function RentalDetail() {
                                                                     <TooltipContent>
                                                                         <p>Delete Payment</p>
                                                                     </TooltipContent>
-                                                                </Tooltip>
+                                                                </Tooltip> */}
                                                             </div>
                                                         </TooltipProvider>
                                                     </TableCell>

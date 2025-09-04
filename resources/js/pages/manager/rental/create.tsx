@@ -103,6 +103,7 @@ export default function CreateRentalRecord() {
                 downPayment: 0,
                 remainingPayment: 0,
                 totalPrice: 0,
+                rentalCost: 0,
                 exitDate: null,
                 durationMonths: 0,
                 paymentBreakdown: [],
@@ -116,7 +117,8 @@ export default function CreateRentalRecord() {
 
         // Calculate total rental cost
         const totalRentalCost = (monthlyFee + managementFee) * selectedPeriod.month;
-        const netRentalCost = totalRentalCost - bookingFee;
+        const rentalCost = totalRentalCost - bookingFee;
+        const netRentalCost = totalRentalCost - bookingFee + depositFee;
 
         // Calculate payments based on payment type and down payment settings
         let downPayment = 0;
@@ -128,7 +130,7 @@ export default function CreateRentalRecord() {
                 if (data.is_down_payment_paid_full) {
                     downPayment = netRentalCost;
                     remainingPayment = 0;
-                    paymentBreakdown = [{ label: 'Down Payment (Full)', amount: downPayment, percentage: 100 }];
+                    paymentBreakdown = [{ label: 'Settlement (100%)', amount: downPayment, percentage: 100 }];
                 } else {
                     downPayment = netRentalCost * 0.5;
                     remainingPayment = netRentalCost * 0.5;
@@ -147,22 +149,23 @@ export default function CreateRentalRecord() {
                 ];
             } else if (selectedPaymentType.name.toLowerCase() === 'monthly') {
                 const monthlyPayment = monthlyFee + managementFee;
-                const totalMonthlyPayment = monthlyPayment * selectedPeriod.month;
+                const depositPerMonth = depositFee / selectedPeriod.month;
                 paymentBreakdown = [
                     {
                         label: `Monthly Payment × ${selectedPeriod.month}`,
-                        amount: monthlyPayment,
+                        amount: monthlyPayment + depositPerMonth,
                         percentage: null,
                     },
                     {
                         label: `Total Monthly Payment`,
-                        amount: totalMonthlyPayment,
+                        amount: (monthlyPayment + depositPerMonth) * selectedPeriod.month,
                         percentage: null,
                     },
                 ];
             }
         }
 
+        // Total price (sewa penuh + deposit)
         const totalPrice = depositFee + totalRentalCost;
 
         // Calculate exit date
@@ -183,6 +186,7 @@ export default function CreateRentalRecord() {
             remainingPayment,
             totalPrice,
             exitDate,
+            rentalCost,
             durationMonths: selectedPeriod.month,
             paymentBreakdown,
         };
@@ -583,7 +587,7 @@ export default function CreateRentalRecord() {
 
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Net Rental Cost</span>
-                                        <span className="font-medium">{formatCurrency(calculations.netRentalCost)}</span>
+                                        <span className="font-medium">{formatCurrency(calculations.rentalCost)}</span>
                                     </div>
 
                                     <Separator />
@@ -616,6 +620,7 @@ export default function CreateRentalRecord() {
                                             <span>Total Price</span>
                                             <span className="text-lg">{formatCurrency(calculations.totalPrice)}</span>
                                         </div>
+                                        <p className="text-xs text-blue-600 dark:text-blue-400">*Total has been included by booking fee</p>
                                     </div>
 
                                     {/* Rental Period */}

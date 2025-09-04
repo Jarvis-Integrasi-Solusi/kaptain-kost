@@ -17,7 +17,7 @@ return new class extends Migration
             $table->date('billing_date');
             $table->date('paid_at')->nullable();
             $table->integer('amount');
-            $table->enum('category', ['rental_fee', 'deposit_fee', 'down_payment_fee', 'booking_fee']);
+            $table->enum('category', ['rental_fee', 'down_payment_fee', 'booking_fee']);
             $table->enum('payment_status', ['paid', 'unpaid']);
             $table->enum('payment_method', ['cash', 'payment_gateway'])->nullable();
             $table->string('payment_proof')->nullable();
