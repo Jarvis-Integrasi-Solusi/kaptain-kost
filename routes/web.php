@@ -19,13 +19,12 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-    return Inertia::render('welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
-})->name('home');
+    if (!Auth::check()) {
+        return redirect()->route('login');
+    }
+
+    return redirect()->route('dashboard');
+});
 
 // Manager routes
 Route::middleware(['auth', 'verified', 'role:manager'])->prefix('manager')->group(function () {
@@ -71,7 +70,7 @@ Route::middleware(['auth', 'verified', 'role:manager'])->prefix('manager')->grou
         Route::put('/{id}', [RecordController::class, 'update'])->name('manager.rental.record.update');
         Route::delete('/{id}', [RecordController::class, 'destroy'])->name('manager.rental.record.destroy');
         Route::post('/{id}/terminate', [RecordController::class, 'terminate'])->name('manager.rental.record.terminate');
-        Route::post('/{id}/set-occupied', [RecordController::class, 'setOccupied'])->name('manager.rental.record.set-occupied');
+        Route::post('/{id}/return-deposit', [RecordController::class, 'returnDeposit'])->name('manager.rental.record.return-deposit');
 
         // payment
         Route::post('/payment/{id}/mark-as-paid', [RentalPaymentController::class, 'markAsPaid'])->name('manager.rental.payment.mark-as-paid');
