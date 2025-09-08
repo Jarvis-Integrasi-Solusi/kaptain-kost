@@ -1,13 +1,6 @@
 // resources/js/types/index.d.ts
 import { Config } from 'ziggy-js';
-
-export interface User {
-    id: number;
-    name: string;
-    email: string;
-    email_verified_at?: string;
-    role: 'manager' | 'operator' | 'tenant';
-}
+import { User } from './user';
 
 export interface NavItem {
     title: string;
@@ -17,12 +10,18 @@ export interface NavItem {
     isActive?: boolean;
 }
 
-
 export interface NavGroup {
     title: string;
     items: NavItem[];
 }
 
+export interface SharedData {
+    name: string;
+    quote: { message: string; author: string };
+    auth: Auth;
+    sidebarOpen: boolean;
+    [key: string]: unknown;
+}
 
 export interface BreadcrumbItem {
     title: string;
@@ -41,3 +40,5 @@ export type PageProps<T extends Record<string, unknown> = Record<string, unknown
     ziggy: Config & { location: string };
     sidebarOpen: boolean;
 };
+
+export { User };

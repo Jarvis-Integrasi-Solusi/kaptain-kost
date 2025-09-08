@@ -3,59 +3,43 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavGroup, type PageProps } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import {
-    AirVent,
-    BarChart3,
-    BedDouble,
-    BookUser,
-    Building,
-    CalendarRange,
-    ChartBarStacked,
-    ClipboardCopy,
-    CreditCard,
-    DoorOpen,
-    FileText,
-    LayoutGrid,
-    ShieldCheck,
-    UserCog,
-    Wrench,
-} from 'lucide-react';
+import { BarChart3, BedDouble, ChartBarStacked, ClipboardCopy, FileText, LayoutGrid, User, UserCog, Wrench } from 'lucide-react';
 import AppLogo from './app-logo';
 
 // Manager Navigation
 const managerNavGroups: NavGroup[] = [
-    {
-        title: 'Overview',
-        items: [
-            {
-                title: 'Dashboard',
-                href: '/manager/dashboard',
-                icon: LayoutGrid,
-            },
-            {
-                title: 'Booking Chart',
-                href: '/manager/booking-chart',
-                icon: BookUser,
-            },
-        ],
-    },
+    // {
+    //     title: 'Overview',
+    //     items: [
+    //         {
+    //             title: 'Dashboard',
+    //             href: '/manager/dashboard',
+    //             icon: LayoutGrid,
+    //         },
+    //         {
+    //             title: 'Booking Chart',
+    //             href: '/manager/booking-chart',
+    //             icon: BookUser,
+    //         },
+    //     ],
+    // },
     {
         title: 'Users ',
         items: [
             {
-                title: 'Managers',
-                href: '/manager/users/managers',
+                title: 'Manager',
+                href: '/manager/user/manager',
                 icon: UserCog,
             },
+            // {
+            //     title: 'Operator',
+            //     href: '/manager/user/operator',
+            //     icon: Wrench,
+            // },
             {
-                title: 'Operators',
-                href: '/manager/users/operators',
-                icon: Wrench,
-            },
-            {
-                title: 'Tenants',
-                href: '/manager/users/tenants',
-                icon: Building,
+                title: 'Tenant',
+                href: '/manager/user/tenant',
+                icon: User,
             },
         ],
     },
@@ -64,29 +48,24 @@ const managerNavGroups: NavGroup[] = [
         items: [
             {
                 title: 'Room List',
-                href: '/manager/rooms',
+                href: '/manager/room',
                 icon: BedDouble,
             },
             {
                 title: 'Category',
-                href: '/manager/rooms/category',
+                href: '/manager/room/category',
                 icon: ChartBarStacked,
             },
-            {
-                title: 'Facility',
-                href: '/manager/rooms/facility',
-                icon: AirVent,
-            },
-            {
-                title: 'Occupancy Status',
-                href: '/manager/rooms/occupancy',
-                icon: DoorOpen,
-            },
-            {
-                title: 'Condition Status',
-                href: '/manager/rooms/condition',
-                icon: ShieldCheck,
-            },
+            // {
+            //     title: 'Occupancy Status',
+            //     href: '/manager/room/occupancy-status',
+            //     icon: DoorOpen,
+            // },
+            // {
+            //     title: 'Condition Status',
+            //     href: '/manager/room/condition-status',
+            //     icon: ShieldCheck,
+            // },
         ],
     },
     {
@@ -97,16 +76,16 @@ const managerNavGroups: NavGroup[] = [
                 href: '/manager/rental',
                 icon: ClipboardCopy,
             },
-            {
-                title: 'Payment Type',
-                href: '/manager/rental/payment-type',
-                icon: CreditCard,
-            },
-            {
-                title: 'Rental Period',
-                href: '/manager/rental/period',
-                icon: CalendarRange,
-            },
+            // {
+            //     title: 'Payment Type',
+            //     href: '/manager/rental/payment-type',
+            //     icon: CreditCard,
+            // },
+            // {
+            //     title: 'Rental Period',
+            //     href: '/manager/rental/period',
+            //     icon: CalendarRange,
+            // },
         ],
     },
 ];

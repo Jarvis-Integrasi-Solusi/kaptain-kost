@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('occupancy_statuses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('company_id')->nullable()->constrained('companies')->onDelete('set null');
             $table->string('name');
             $table->timestamps();
         });

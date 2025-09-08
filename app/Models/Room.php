@@ -9,6 +9,47 @@ class Room extends Model
     protected $table = 'rooms';
     protected $guarded = ['id', 'created_at', 'updated_at'];
 
+    protected $appends = ['occupancy_status', 'image', 'url'];
+
+    public function roomImages()
+    {
+        return $this->hasMany(RoomImage::class);
+    }
+
+
+    public function getImageAttribute()
+    {
+        return $this->roomImages()->orderBy('created_at', 'asc')->first()?->image;
+    }
+
+    public function getUrlAttribute()
+    {
+        return asset('storage/' . $this->image);
+    }
+
+    public function getOccupancyStatusAttribute()
+    {
+        $latestRental = $this->rentals()->latest('created_at')->first();
+
+        if (!$latestRental) {
+            return 'available';
+        }
+
+        if (in_array($latestRental->status, ['completed', 'terminated'])) {
+            return 'available';
+        }
+
+        if ($latestRental->status === 'booked') {
+            return 'booked';
+        }
+
+        if ($latestRental->status === 'occupied') {
+            return 'occupied';
+        }
+
+        return 'available';
+    }
+
     public function company()
     {
         return $this->belongsTo(Company::class);

@@ -24,9 +24,13 @@ class User extends Authenticatable
         'role',
         'address',
         'telephone',
+        'username',
+        'gender',
+        'status',
         'guardian_name',
         'guardian_telephone',
         'image',
+        'company_id',
     ];
 
     // Role Check Helper Function
@@ -107,4 +111,7 @@ class User extends Authenticatable
     {
         return $this->hasManyThrough(TenantService::class, Rental::class, 'user_id', 'rental_id');
     }
+
+
+    
 }
