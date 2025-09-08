@@ -287,8 +287,6 @@ export default function RentalRecordList() {
 
         if (normalizedStatus === 'booked') {
             return <Badge variant="warning">{status}</Badge>;
-        }  else if (normalizedStatus === 'reserved') {
-            return <Badge variant="default">{status}</Badge>;
         } else if (normalizedStatus === 'occupied') {
             return <Badge variant="info">{status}</Badge>;
         } else if (normalizedStatus === 'completed') {
@@ -559,23 +557,18 @@ export default function RentalRecordList() {
                                                                     View
                                                                 </Link>
                                                             </DropdownMenuItem>
-                                                            <DropdownMenuItem asChild>
-                                                                {rental.status === 'booked' && (
+                                                            {rental.status === 'booked' && (
+                                                                <DropdownMenuItem asChild>
                                                                     <Link
                                                                         href={`/manager/rental/${rental.id}/edit`}
-                                                                        className="inline-flex items-center text-yellow-600 hover:underline"
+                                                                        className="flex items-center text-yellow-600"
                                                                     >
                                                                         <Edit className="mr-2 h-4 w-4 text-yellow-600" />
                                                                         Edit
                                                                     </Link>
-                                                                )}
-                                                            </DropdownMenuItem>
-                                                            {rental.status === 'reserved' && (
-                                                                <DropdownMenuItem className="text-blue-600" onClick={() => setOccupiedId(rental.id)}>
-                                                                    <ChevronRight className="mr-2 h-4 w-4 text-blue-600" />
-                                                                    Set as Occupied
                                                                 </DropdownMenuItem>
                                                             )}
+
                                                             <DropdownMenuItem className="text-red-600" onClick={() => setDeleteId(rental.id)}>
                                                                 <Trash2 className="mr-2 h-4 w-4 text-red-600" />
                                                                 Delete

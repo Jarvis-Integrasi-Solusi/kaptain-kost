@@ -4,13 +4,17 @@ namespace App\Http\Controllers\Manager\Rental;
 
 use App\Http\Controllers\Controller;
 use App\Models\RentalPayment;
+use Illuminate\Http\Request;
 
 class PaymentController extends Controller
 {
-    public function markAsPaid( $id)
+    public function markAsPaid(Request $request, $id)
     {
         $rentalPayment = RentalPayment::find($id);
 
+        $paymentDate = $request->validate([
+            'paid_at' => 'required|date',
+        ]);
 
         if (!$rentalPayment) {
             return redirect()->back()
@@ -28,18 +32,15 @@ class PaymentController extends Controller
                 ]);
         }
 
-        // change rental status to reserved
-
-
         try {
             $rentalPayment->payment_status = 'paid';
-            $rentalPayment->paid_at = now();
+            $rentalPayment->paid_at = $paymentDate['paid_at'];
             $rentalPayment->save();
 
-            // change rental status to reserved
+            // change rental status to occupied if the payment is for booking fee
             if ($rentalPayment->category === 'booking_fee') {
                 $rental = $rentalPayment->rental;
-                $rental->status = 'reserved';
+                $rental->status = 'occupied';
                 $rental->save();
             }
 

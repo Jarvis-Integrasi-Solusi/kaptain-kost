@@ -27,6 +27,9 @@ return new class extends Migration
             $table->string('guardian_name')->nullable();
             $table->string('guardian_telephone')->nullable();
             $table->text('address')->nullable();
+            $table->string('bank_name')->nullable();
+            $table->string('bank_account_number')->nullable();
+            $table->string('bank_account_holder')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

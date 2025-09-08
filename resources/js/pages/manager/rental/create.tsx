@@ -150,15 +150,19 @@ export default function CreateRentalRecord() {
             } else if (selectedPaymentType.name.toLowerCase() === 'monthly') {
                 const monthlyPayment = monthlyFee + managementFee;
                 const depositPerMonth = depositFee / selectedPeriod.month;
+                const bookingPermonth = bookingFee / selectedPeriod.month;
+                const totalMonthly = Math.ceil(monthlyPayment + depositPerMonth - bookingPermonth);
+
+                
                 paymentBreakdown = [
                     {
                         label: `Monthly Payment × ${selectedPeriod.month}`,
-                        amount: monthlyPayment + depositPerMonth,
+                        amount: totalMonthly,
                         percentage: null,
                     },
                     {
                         label: `Total Monthly Payment`,
-                        amount: (monthlyPayment + depositPerMonth) * selectedPeriod.month,
+                        amount: totalMonthly * selectedPeriod.month,
                         percentage: null,
                     },
                 ];
@@ -441,7 +445,7 @@ export default function CreateRentalRecord() {
                                                     <SelectContent>
                                                         {rental_periods?.map((period) => (
                                                             <SelectItem key={period.id} value={period.id.toString()}>
-                                                                {period.name} ({period.month} months)
+                                                                {period.name}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>

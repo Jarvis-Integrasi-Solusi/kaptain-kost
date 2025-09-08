@@ -15,7 +15,7 @@ class RoomCategorySeeder extends Seeder
         RoomCategory::create([
             'name' => 'Superior',
             'company_id' => 1,
-            'management_fee' => 100000,
+            'management_fee' => 150000,
             'monthly_rental_fee' => 1500000,
             'deposit_fee' => 1000000,
         ]);

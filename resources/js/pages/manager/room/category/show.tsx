@@ -170,20 +170,20 @@ export default function ShowRoomCategory() {
 
                                     <Separator />
 
-                                    <div className="flex justify-between font-medium">
+                                    <div className="flex justify-between text-sm font-medium">
                                         <span>Monthly Total</span>
-                                        <span className="text-lg">{formatCurrency(totals.monthlyTotal)}</span>
+                                        <span className="text-sm">{formatCurrency(totals.monthlyTotal)}</span>
                                     </div>
 
                                     <Separator />
 
                                     <div className="space-y-2 rounded-lg bg-blue-50 p-3 dark:bg-blue-950/30">
                                         <div className="flex justify-between text-sm">
-                                            <span className="text-muted-foreground">Deposit Fee</span>
+                                            <span className="font-medium">Deposit Fee</span>
                                             <span className="font-medium">{formatCurrency(category.deposit_fee)}</span>
                                         </div>
                                         <div className="flex justify-between font-medium text-blue-800 dark:text-blue-300">
-                                            <span>Initial Payment</span>
+                                            <span>Total Price</span>
                                             <span className="text-lg">{formatCurrency(totals.initialTotal)}</span>
                                         </div>
                                     </div>

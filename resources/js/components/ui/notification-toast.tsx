@@ -1,7 +1,7 @@
 // resources/js/components/ui/notification-toast.tsx
 
 import { Button } from '@/components/ui/button';
-import { usePage } from '@inertiajs/react';
+import { usePage, router } from '@inertiajs/react';
 import { CheckCircle, X, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -24,13 +24,20 @@ interface NotificationItem extends FlashMessage {
 }
 
 export default function NotificationToast() {
-    // Type assertion yang lebih spesifik
     const { flash } = usePage<PagePropsWithFlash>().props;
     const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
-    useEffect(() => {
+    // Function to clear flash data
+    const clearFlashData = () => {
 
-        
+        router.reload({
+            only: [],
+            // preserveState: true,
+            // preserveScroll: true,
+        });
+    };
+
+    useEffect(() => {
         const newNotifications: NotificationItem[] = [];
         
         // Periksa apakah flash dan properti success/error ada
@@ -53,17 +60,27 @@ export default function NotificationToast() {
         if (newNotifications.length > 0) {
             setNotifications(prev => [...prev, ...newNotifications]);
 
-        // auto dismiss after 3 seconds
-        newNotifications.forEach(notification => {
-            setTimeout(() => {
-                setNotifications(prev => prev.filter(n => n.id !== notification.id));
-            }, 3000);
-        });
+            // Auto dismiss after 3 seconds dan clear flash data
+            newNotifications.forEach(notification => {
+                setTimeout(() => {
+                    setNotifications(prev => prev.filter(n => n.id !== notification.id));
+                    
+                    // Clear flash data setelah notification hilang
+                    setTimeout(() => {
+                        clearFlashData();
+                    }, 100); // Delay kecil untuk memastikan state sudah terupdate
+                }, 3000);
+            });
         }
     }, [flash]);
 
     const dismissNotification = (id: string) => {
         setNotifications(prev => prev.filter(n => n.id !== id));
+        
+        // Clear flash data ketika notification di-close manual
+        setTimeout(() => {
+            clearFlashData();
+        }, 100);
     };
 
     if (notifications.length === 0) {

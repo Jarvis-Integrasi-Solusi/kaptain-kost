@@ -11,6 +11,9 @@ export interface User {
     guardian_telephone?: string;
     email_verified_at?: string;
     status?: 'active' | 'inactive';
+    bank_name?: string;
+    bank_account_number?: string;
+    bank_account_holder?: string;
     company_id?: number;
     company?: {
         id: number;

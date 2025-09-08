@@ -20,10 +20,11 @@ return new class extends Migration
             $table->foreignId('payment_type_id')->nullable()->constrained('payment_types')->onDelete('set null');
             $table->foreignId('booking_fee_id')->nullable()->constrained('booking_fees')->onDelete('set null');
             $table->boolean('is_down_payment_paid_full')->default(false);
-            $table->enum('status', ['booked', 'reserved', 'occupied', 'completed', 'terminated']);
+            $table->enum('status', ['booked', 'occupied', 'completed', 'terminated']);
             $table->date('entry_date');
             $table->date('exit_date')->nullable();
             $table->integer('total_price');
+            $table->boolean('is_deposit_returned')->default(false);           
             $table->timestamps();
         });
     }

@@ -43,10 +43,6 @@ class Room extends Model
             return 'booked';
         }
 
-        if ($latestRental->status === 'reserved') {
-            return 'reserved';
-        }
-
         if ($latestRental->status === 'occupied') {
             return 'occupied';
         }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Manager\Rental;
 
 use App\Http\Controllers\Controller;
 use App\Models\BookingFee;
+use App\Models\DepositReturn;
 use App\Models\PaymentType;
 use App\Models\Rental;
 use App\Models\RentalPeriod;
@@ -97,7 +98,8 @@ class RecordController extends Controller
                     'paymentType',
                     'rentalPeriod',
                     'rentalPayments',
-                    'bookingFee'
+                    'bookingFee',
+                    'depositReturn'
                 ])
                 ->where('id', $id)
                 ->where('company_id', $user->company_id)
@@ -105,7 +107,7 @@ class RecordController extends Controller
 
             // Calculate payment summary
             $totalPaid = $rental->rentalPayments()->where('payment_status', 'paid')->sum('amount');
-            $remainingBalance = $rental->total_price - $totalPaid;
+            $remainingBalance = max(0, $rental->total_price - $totalPaid);            
             $paymentStatus = $remainingBalance <= 0 ? 'Paid' : 'Pending';
             
             // Calculate payment progress percentage
@@ -690,46 +692,58 @@ class RecordController extends Controller
         }
     }
 
-    public function setOccupied(string $id) 
+    public function returnDeposit(Request $request, $id)
     {
         $user = Auth::user();
 
-        $rental = Rental::where('id', $id)
-            ->where('company_id', $user->company_id)
-            ->firstOrFail();
-
-        if ($rental->status === 'occupied') {
-            return redirect()->back()
-                ->with('error', [
-                    'title' => 'Rental Already Occupied',
-                    'message' => 'This rental record is already marked as occupied.'
-                ]);
-        }
-
-        if ($rental->status !== 'reserved') {
-            return redirect()->back()
-                ->with('error', [
-                    'title' => 'Invalid Status',
-                    'message' => 'Only rentals with status "booked" can be set to occupied.'
-                ]);
-        }
-
         try {
-            $rental->status = 'occupied';
-            $rental->save();
+            // Validasi input
+            $validated = $request->validate([
+                'returned_at' => [
+                    'required',
+                    'date',
+                    'after_or_equal:' . now()->toDateString(),
+                ],
+                'proof_image' => [
+                    'required',
+                    'image',
+                    'mimes:jpeg,png,jpg',
+                    'max:2048',
+                ],
+            ]);
+
+            $rental = Rental::with('user', 'room')->findOrFail($id);
+
+            $path = $request->file('proof_image')->store('images/deposit-proofs', 'public');
+
+            $depositReturn = DepositReturn::create([
+                'rental_id'    => $rental->id,
+                'returned_at'  => $validated['returned_at'],
+                'proof_image'  => $path,
+            ]);
+
+            $rental->update([
+                'is_deposit_returned' => true,
+                'status' => 'completed'
+            ]);
 
             return redirect()->back()
                 ->with('success', [
-                    'title' => 'Rental Occupied',
-                    'message' => 'The rental has been successfully set to occupied.'
+                    'title'   => 'Deposit Returned!',
+                    'message' => "Deposit for {$rental->user->name} in room {$rental->room->name} has been returned successfully."
                 ]);
+        } catch (ValidationException $e) {
+            Log::info('deposit return validation error: ' . $e);
+            return back()
+                ->withErrors($e->errors())
+                ->withInput();
         } catch (\Exception $e) {
-            return redirect()->back()
+            return back()
                 ->with('error', [
                     'title' => 'Error!',
-                    'message' => 'An error occurred while setting the rental to occupied. Please try again.'
-                ]);
+                    'message' => 'Failed to return deposit: ' . $e->getMessage()
+                ])
+                ->withInput();
         }
     }
-
 }

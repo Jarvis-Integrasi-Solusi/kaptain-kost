@@ -149,16 +149,18 @@ export default function EditRentalRecord() {
                 ];
             } else if (selectedPaymentType.name.toLowerCase() === 'monthly') {
                 const monthlyPayment = monthlyFee + managementFee;
-                const totalMonthlyPayment = monthlyPayment * selectedPeriod.month;
+                const depositPerMonth = depositFee / selectedPeriod.month;
+                const bookingPermonth = bookingFee / selectedPeriod.month;
+                const totalMonthly = monthlyPayment + depositPerMonth - bookingPermonth;
                 paymentBreakdown = [
                     {
                         label: `Monthly Payment × ${selectedPeriod.month}`,
-                        amount: monthlyPayment,
+                        amount: totalMonthly,
                         percentage: null,
                     },
                     {
                         label: `Total Monthly Payment`,
-                        amount: totalMonthlyPayment,
+                        amount: totalMonthly * selectedPeriod.month,
                         percentage: null,
                     },
                 ];
