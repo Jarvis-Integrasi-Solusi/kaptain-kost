@@ -55,16 +55,6 @@ class Room extends Model
         return $this->belongsTo(Company::class);
     }
 
-    public function occupancyStatus()
-    {
-        return $this->belongsTo(OccupancyStatus::class);
-    }
-
-    public function conditionStatus()
-    {
-        return $this->belongsTo(ConditionStatus::class);
-    }
-
     public function roomCategory()
     {
         return $this->belongsTo(RoomCategory::class);

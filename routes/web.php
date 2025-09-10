@@ -48,12 +48,6 @@ Route::middleware(['auth', 'verified', 'role:manager'])->prefix('manager')->grou
         Route::put('/category/{id}', [CategoryController::class, 'update'])->name('manager.room.category.update');
         Route::delete('/category/{id}', [CategoryController::class, 'destroy'])->name('manager.room.category.destroy');
 
-        Route::get('/occupancy-status', [OccupancyStatusController::class, 'index'])->name('manager.room.occupancy-status.index');
-        Route::get('/occupancy-status/{id}', [OccupancyStatusController::class, 'show'])->name('manager.room.occupancy-status.show');
-
-        Route::get('/condition-status', [ConditionStatusController::class, 'index'])->name('manager.room.condition-status.index');
-        Route::get('/condition-status/{id}', [ConditionStatusController::class, 'show'])->name('manager.room.condition-status.show');
-
         Route::get('/', [RoomController::class, 'index'])->name('manager.room.index');
         Route::get('/create', [RoomController::class, 'create'])->name('manager.room.create');
         Route::get('/{id}', [RoomController::class, 'show'])->name('manager.room.show');
@@ -65,10 +59,6 @@ Route::middleware(['auth', 'verified', 'role:manager'])->prefix('manager')->grou
 
     // Rental Management
     Route::prefix('rental')->group(function () {
-
-        Route::get('/period', [PeriodController::class, 'index'])->name('manager.rental.period.index');
-
-        Route::get('/payment-type', [PaymentTypeController::class, 'index'])->name('manager.rental.payment-type.index');
 
         Route::get('/', [RecordController::class, 'index'])->name('manager.rental.record.index');
         Route::get('/create', [RecordController::class, 'create'])->name('manager.rental.record.create');

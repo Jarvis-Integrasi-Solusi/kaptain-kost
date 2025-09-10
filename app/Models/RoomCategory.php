@@ -19,7 +19,4 @@ class RoomCategory extends Model
     {
         return $this->hasMany(Room::class);
     }
-
-    
-
 }

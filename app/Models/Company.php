@@ -18,28 +18,7 @@ class Company extends Model
     {
         return $this->hasMany(Room::class);
     }
-
-    public function services()
-    {
-        return $this->hasMany(Service::class);
-    }
     
-
-    public function vehicles()
-    {
-        return $this->hasMany(Vehicle::class);
-    }
-
-    public function conditionStatuses()
-    {
-        return $this->hasMany(ConditionStatus::class);
-    }
-    
-    public function occupancyStatuses()
-    {
-        return $this->hasMany(OccupancyStatus::class);
-    }
-
     public function paymentTypes()
     {
         return $this->hasMany(PaymentType::class);

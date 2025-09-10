@@ -81,37 +81,4 @@ class User extends Authenticatable
     {
         return $this->hasMany(Rental::class);
     }
-
-    public function assignedTasks()
-    {
-        return $this->hasMany(Task::class, 'assigned_to');
-    }
-
-    public function tasks()
-    {
-        return $this->hasMany(Task::class, 'tenant_id');
-    }
-
-    public function tenantVehicles()
-    {
-        return $this->hasMany(TenantVehicle::class, 'tenant_id');
-    }
-
-    public function vehicles()
-    {
-        return $this->belongsToMany(Vehicle::class, 'tenant_vehicles', 'tenant_id', 'vehicle_id');
-    }
-
-    public function parkingFeePayments()
-    {
-        return $this->hasManyThrough(ParkingFeePayment::class, TenantVehicle::class, 'tenant_id', 'tenant_vehicle_id');
-    }
-
-    public function tenantServices()
-    {
-        return $this->hasManyThrough(TenantService::class, Rental::class, 'user_id', 'rental_id');
-    }
-
-
-    
 }

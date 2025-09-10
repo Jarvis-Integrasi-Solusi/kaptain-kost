@@ -264,23 +264,8 @@ class Rental extends Model
         return $this->hasMany(RentalPayment::class);
     }
 
-    public function tasks()
-    {
-        return $this->hasMany(Task::class);
-    }
-
     public function depositReturn()
     {
         return $this->hasOne(DepositReturn::class);
-    }
-
-    public function tenantServices()
-    {
-        return $this->hasMany(TenantService::class);
-    }
-
-    public function tenantServicePayments()
-    {
-        return $this->hasManyThrough(TenantServicePayment::class, TenantService::class, 'rental_id', 'tenant_service_id');
     }
 }
