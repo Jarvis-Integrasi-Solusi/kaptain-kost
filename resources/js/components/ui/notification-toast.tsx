@@ -29,7 +29,6 @@ export default function NotificationToast() {
 
     // Function to clear flash data
     const clearFlashData = () => {
-
         router.reload({
             only: [],
             // preserveState: true,
@@ -88,11 +87,11 @@ export default function NotificationToast() {
     }
 
     return (
-        <div className="fixed top-4 right-4 space-y-2">
+        <div className="fixed top-4 right-4 left-4 sm:left-auto space-y-2 z-50 pointer-events-none">
             {notifications.map((notification) => (
                 <div
                     key={notification.id}
-                    className={`w-96 p-4 rounded-lg shadow-lg border-l-4 transition-all duration-300 ease-in-out ${
+                    className={`w-full sm:w-96 p-3 sm:p-4 rounded-lg shadow-lg border-l-4 transition-all duration-300 ease-in-out pointer-events-auto ${
                         notification.type === 'success'
                             ? 'border-l-green-500 bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800'
                             : 'border-l-red-500 bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800'
@@ -100,14 +99,14 @@ export default function NotificationToast() {
                     role="alert"
                 >
                     <div className="flex items-start justify-between w-full">
-                        <div className="flex items-start space-x-3 flex-1 min-w-0">
+                        <div className="flex items-start space-x-2 sm:space-x-3 flex-1 min-w-0">
                             {notification.type === 'success' ? (
-                                <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 dark:text-green-400 shrink-0" />
+                                <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 mt-0.5 dark:text-green-400 shrink-0" />
                             ) : (
-                                <XCircle className="h-5 w-5 text-red-600 mt-0.5 dark:text-red-400 shrink-0" />
+                                <XCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600 mt-0.5 dark:text-red-400 shrink-0" />
                             )}
                             <div className="flex-1 min-w-0">
-                                <div className={`text-sm font-medium mb-1 ${
+                                <div className={`text-xs sm:text-sm font-medium mb-1 ${
                                     notification.type === 'success' 
                                         ? 'text-green-800 dark:text-green-200' 
                                         : 'text-red-800 dark:text-red-200'
@@ -115,7 +114,7 @@ export default function NotificationToast() {
                                     {notification.title}
                                 </div>
                                 {notification.message && (
-                                    <div className={`text-sm ${
+                                    <div className={`text-xs sm:text-sm ${
                                         notification.type === 'success' 
                                             ? 'text-green-700 dark:text-green-300' 
                                             : 'text-red-700 dark:text-red-300'
@@ -129,13 +128,13 @@ export default function NotificationToast() {
                             variant="ghost"
                             size="sm"
                             onClick={() => dismissNotification(notification.id)}
-                            className={`h-6 w-6 p-0 ml-2 shrink-0 hover:bg-transparent ${
+                            className={`h-5 w-5 sm:h-6 sm:w-6 p-0 ml-1 sm:ml-2 shrink-0 hover:bg-transparent ${
                                 notification.type === 'success' 
                                     ? 'text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200' 
                                     : 'text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200'
                             }`}
                         >
-                            <X className="h-4 w-4" />
+                            <X className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                     </div>
                 </div>

@@ -7,18 +7,11 @@ interface FormatCurrencyOptions {
 /**
  * Format number as currency
  */
-export const formatCurrency = (
-    amount: number | string, 
-    options: FormatCurrencyOptions = {}
-): string => {
-    const {
-        showSymbol = true,
-        locale = 'id-ID',
-        currency = 'IDR'
-    } = options;
+export const formatCurrency = (amount: number | string, options: FormatCurrencyOptions = {}): string => {
+    const { showSymbol = true, locale = 'id-ID', currency = 'IDR' } = options;
 
     const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-    
+
     if (isNaN(numericAmount)) {
         return showSymbol ? 'Rp 0' : '0';
     }
@@ -43,13 +36,13 @@ export const formatCurrency = (
  */
 export const parseCurrency = (value: string): number => {
     if (!value) return 0;
-    
+
     // Remove all non-digit characters except decimal point
     const cleanValue = value.replace(/[^\d.,]/g, '');
-    
+
     // Handle Indonesian decimal format (comma as decimal separator)
     const normalizedValue = cleanValue.replace(/\./g, '').replace(',', '.');
-    
+
     const parsed = parseFloat(normalizedValue);
     return isNaN(parsed) ? 0 : parsed;
 };
@@ -59,9 +52,9 @@ export const parseCurrency = (value: string): number => {
  */
 export const formatNumber = (value: number | string): string => {
     const numericValue = typeof value === 'string' ? parseFloat(value) : value;
-    
+
     if (isNaN(numericValue)) return '0';
-    
+
     return new Intl.NumberFormat('id-ID', {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
@@ -74,4 +67,22 @@ export const formatNumber = (value: number | string): string => {
 export const cleanCurrencyInput = (value: string): string => {
     // Allow only digits, dots, and commas
     return value.replace(/[^\d.,]/g, '');
+};
+
+
+/**
+ * Format date to 'DD MMM YYYY' format
+ *  e.g., 25 Dec 2023
+ * Handles null, undefined, and invalid dates
+ * Returns '-' for invalid dates
+ *  */
+export const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '-';
+    return date.toLocaleDateString('en-US', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+    });
 };

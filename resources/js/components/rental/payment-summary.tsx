@@ -1,7 +1,7 @@
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { PaymentSummary as PaymentSummaryType } from '@/types/payment-summary';
+import { getPaymentStatusBadge } from '@/utils/badges';
 import { formatCurrency } from '@/utils/format';
 
 interface PaymentSummaryProps {
@@ -10,19 +10,6 @@ interface PaymentSummaryProps {
 
 export default function PaymentSummary({ paymentSummary }: PaymentSummaryProps) {
     // Simplified badge function
-    const getStatusBadge = (status: string) => {
-        const normalizedStatus = status?.toLowerCase();
-
-        if (normalizedStatus === 'paid') {
-            return <Badge variant="success">{status}</Badge>;
-        } else if (normalizedStatus === 'unpaid') {
-            return <Badge variant="error">{status}</Badge>;
-        } else if (normalizedStatus === 'pending') {
-            return <Badge variant="warning">{status}</Badge>;
-        }
-
-        return <Badge variant="secondary">{status}</Badge>;
-    };
 
     return (
         <Card>
@@ -31,7 +18,7 @@ export default function PaymentSummary({ paymentSummary }: PaymentSummaryProps) 
                     <div>
                         <CardTitle className="text-lg">Payment Summary</CardTitle>
                     </div>
-                    {getStatusBadge(paymentSummary.payment_status)}
+                    {getPaymentStatusBadge(paymentSummary.payment_status)}
                 </div>
             </CardHeader>
             <CardContent className="space-y-4">

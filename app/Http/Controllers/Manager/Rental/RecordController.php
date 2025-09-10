@@ -714,7 +714,7 @@ class RecordController extends Controller
 
             $rental = Rental::with('user', 'room')->findOrFail($id);
 
-            $path = $request->file('proof_image')->store('images/deposit-proofs', 'public');
+            $path = $request->file('proof_image')->store('images/proof/deposit', 'public');
 
             $depositReturn = DepositReturn::create([
                 'rental_id'    => $rental->id,

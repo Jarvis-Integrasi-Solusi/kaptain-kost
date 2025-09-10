@@ -8,7 +8,6 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -22,13 +21,13 @@ import { formatCurrency } from '@/utils/format';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight, Edit, Eye, Filter, MoreHorizontal, Plus, Search, Trash2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
-
+import { getRoomStatusBadge } from '@/utils/badges';
 
 interface RoomPageProps extends PageProps {
     rooms: Room[];
     filters: {
         search?: string;
-        status?: string; 
+        status?: string;
         category?: string;
     };
 }
@@ -211,22 +210,8 @@ export default function RoomList() {
         if (statusFilter) {
             parts.push(`Status: ${statusFilter}`);
         }
-        
+
         return parts.join(' • ');
-    };
-
-    const getRoomStatusBadge = (status?: string) => {
-        const normalizedStatus = status?.toLowerCase();
-
-        if (normalizedStatus === 'booked') {
-            return <Badge variant="warning">{status}</Badge>;
-        } else if (normalizedStatus === 'occupied') {
-            return <Badge variant="info">{status}</Badge>;
-        } else if (normalizedStatus === 'available') {
-            return <Badge variant="success">{status}</Badge>;
-        }
-
-        return <Badge variant="error">{status}</Badge>;
     };
 
     return (

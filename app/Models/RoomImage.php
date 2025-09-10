@@ -12,4 +12,11 @@ class RoomImage extends Model
     {
         return $this->belongsTo(Room::class);
     }
+
+    protected $appends = ['url'];
+
+    public function getUrlAttribute()
+    {
+        return asset('storage/' . $this->image);
+    }
 }

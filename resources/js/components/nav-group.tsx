@@ -1,5 +1,5 @@
 import { type NavGroup } from '@/types';
-import { BarChart3, BedDouble, ChartBarStacked, ClipboardCopy, FileText, LayoutGrid, User, UserCog, Wrench } from 'lucide-react';
+import { BarChart3, BedDouble, BedSingle, ChartBarStacked, ClipboardCopy, FileText, LayoutGrid, User, UserCog, Wrench } from 'lucide-react';
 
 // Manager Navigation Groups
 export const managerNavGroups: NavGroup[] = [
@@ -126,13 +126,23 @@ export const operatorNavGroups: NavGroup[] = [
 
 // Tenant Navigation Groups
 export const tenantNavGroups: NavGroup[] = [
+    // {
+    //     title: 'Overview',
+    //     items: [
+    //         {
+    //             title: 'Dashboard',
+    //             href: '/tenant/dashboard',
+    //             icon: LayoutGrid,
+    //         },
+    //     ],
+    // },
     {
-        title: 'Overview',
+        title: 'Rental Information',
         items: [
             {
-                title: 'Dashboard',
-                href: '/tenant/dashboard',
-                icon: LayoutGrid,
+                title: 'Rooms',
+                href: '/tenant/rental',
+                icon: BedSingle,
             },
         ],
     },

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->text('address');
             $table->string('image')->nullable();
             $table->string('telephone');
+            $table->string('doku_api_key')->nullable();      
             $table->timestamps();
         });
     }

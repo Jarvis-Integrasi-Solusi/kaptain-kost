@@ -1,4 +1,5 @@
 import { BookingFee } from './booking-fee';
+import { Company } from './company';
 import { DepositReturned } from './deposit-returned';
 import { PaymentType } from './payment-type';
 import { RentalPayment } from './rental-payment';
@@ -11,11 +12,13 @@ export interface Rental {
     entry_date: string;
     exit_date?: string;
     total_price: number;
+    company_id: number;
     room: Room;
     user: User;
     rental_period?: RentalPeriod;
     payment_type?: PaymentType;
     rental_payments: RentalPayment[];
+    company: Company
     status: string;
     is_deposit_returned: boolean;
     deposit_return?: DepositReturned;
