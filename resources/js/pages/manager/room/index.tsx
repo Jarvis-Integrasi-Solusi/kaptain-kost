@@ -281,7 +281,7 @@ export default function RoomList() {
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value="available">Available</SelectItem>
-                                                <SelectItem value="reserved">Reserved</SelectItem>
+                                                <SelectItem value="booked">Booked</SelectItem>
                                                 <SelectItem value="occupied">Occupied</SelectItem>
                                             </SelectContent>
                                         </Select>

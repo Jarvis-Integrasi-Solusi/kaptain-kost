@@ -525,7 +525,7 @@ export default function RentalRecordList() {
                                                                     className="text-orange-600"
                                                                     onClick={() => setTerminateId(rental.id)}
                                                                 >
-                                                                    <X className="mr-2 h-4 w-4 text-orange-600" />
+                                                                    <X className="mr-2 h-4 w-4 text-red-600" />
                                                                     Terminate
                                                                 </DropdownMenuItem>
                                                             )}

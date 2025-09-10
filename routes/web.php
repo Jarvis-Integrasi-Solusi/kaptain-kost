@@ -14,7 +14,10 @@ use App\Http\Controllers\Manager\Room\RoomController;
 use App\Http\Controllers\Manager\User\ManagerController;
 use App\Http\Controllers\Manager\User\TenantController;
 use App\Http\Controllers\Manager\User\UserController;
-use App\Http\Controllers\Tenant\ProfileController;
+use App\Http\Controllers\Tenant\ProfileController as TenantProfileController;
+use App\Http\Controllers\Manager\ProfileController as ManagerProfileController;
+use App\Http\Controllers\Operator\ProfileController as OperatorProfileController;
+
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -30,6 +33,10 @@ Route::get('/', function () {
 // Manager routes
 Route::middleware(['auth', 'verified', 'role:manager'])->prefix('manager')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'manager'])->name('manager.dashboard');
+
+    // profile
+    Route::get('/profile', [ManagerProfileController::class, 'edit'])->name('manager.profile.edit');
+    Route::put('/profile', [ManagerProfileController::class, 'update'])->name('manager.profile.update');
 
     // Room management
     Route::prefix('room')->group(function () {
@@ -113,8 +120,8 @@ Route::middleware(['auth', 'verified', 'role:tenant'])->prefix('tenant')->group(
     Route::get('/dashboard', [DashboardController::class, 'tenant'])->name('tenant.dashboard');
 
     // profile 
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('tenant.profile.edit');
-    Route::put('/profile', [ProfileController::class, 'update'])->name('tenant.profile.update');
+    Route::get('/profile', [TenantProfileController::class, 'edit'])->name('tenant.profile.edit');
+    Route::put('/profile', [TenantProfileController::class, 'update'])->name('tenant.profile.update');
 
     // rental and rental payment
     Route::get('/rental', [TenantRentalRecordController::class, 'index'])->name('tenant.rental.index');
@@ -122,13 +129,15 @@ Route::middleware(['auth', 'verified', 'role:tenant'])->prefix('tenant')->group(
     Route::get('/rental/payment/{paymentId}', [TenantRentalPaymentController::class, 'show'])->name('tenant.rental.payment.show');
     Route::post('/rental/payment/{paymentId}/cash', [TenantRentalPaymentController::class, 'cashPayment'])->name('tenant.rental.payment.cash');
 
-
-
 });
 
 // Operator routes
 Route::middleware(['auth', 'verified', 'role:operator'])->prefix('operator')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'operator'])->name('operator.dashboard');
+
+    // profile
+    Route::get('/profile', [OperatorProfileController::class, 'edit'])->name('operator.profile.edit');
+    Route::put('/profile', [OperatorProfileController::class, 'update'])->name('operator.profile.update');
 });
 
 // Default dashboard (untuk redirect berdasarkan role)
