@@ -122,6 +122,7 @@ class ProfileController extends Controller
             // Prepare update data (tanpa informasi bank)
             $updateData = [
                 'name' => $validated['name'],
+                'role' => 'manager', 
                 'email' => $validated['email'],
                 'username' => $validated['username'],
                 'telephone' => $validated['telephone'],
