@@ -5,7 +5,7 @@ export interface Room {
     name: string;
     description?: string;
     room_category_id: number;
-    roomImages?: RoomImage[];
+    room_images?: RoomImage[];
     image: string;
     room_category: RoomCategory;
     occupancy_status: 'available' | 'reserved' | 'occupied' | 'unavailable';

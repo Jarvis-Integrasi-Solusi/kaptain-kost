@@ -11,7 +11,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type PageProps } from '@/types';
 import { PaymentSummary as PaymentSummaryType } from '@/types/payment-summary';
 import { Rental } from '@/types/rental';
-import { formatCurrency } from '@/utils/format';
+import { formatCurrency, formatDate } from '@/utils/format';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { Check, Edit, X } from 'lucide-react';
 
@@ -37,21 +37,6 @@ export default function RentalDetail() {
     const { rental, paymentSummary } = usePage<RentalDetailPageProps>().props;
 
     console.log('deposit return', rental);
-
-    // Fixed format date function to handle null/empty dates
-    const formatDate = (dateString: string | null | undefined) => {
-        if (!dateString) return '-';
-
-        const date = new Date(dateString);
-        // Check if date is valid
-        if (isNaN(date.getTime())) return '-';
-
-        return date.toLocaleDateString('en-US', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-        });
-    };
 
     // Check if it's cash payment
     const isCashPayment = rental.payment_type?.name.toLowerCase() === 'cash';

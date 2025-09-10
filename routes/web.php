@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\Manager\Rental\PaymentController as RentalPaymentController;
+use App\Http\Controllers\Manager\Rental\PaymentController as ManagerRentalPaymentController;
+use App\Http\Controllers\Tenant\Rental\PaymentController as TenantRentalPaymentController;
+use App\Http\Controllers\Tenant\Rental\RecordController as TenantRentalRecordController;
 use App\Http\Controllers\Manager\Rental\PaymentTypeController;
 use App\Http\Controllers\Manager\Rental\PeriodController;
 use App\Http\Controllers\Manager\Rental\RecordController;
@@ -10,10 +12,12 @@ use App\Http\Controllers\Manager\Room\ConditionStatusController;
 use App\Http\Controllers\Manager\Room\OccupancyStatusController;
 use App\Http\Controllers\Manager\Room\RoomController;
 use App\Http\Controllers\Manager\User\ManagerController;
-use App\Http\Controllers\Manager\User\OperatorController;
 use App\Http\Controllers\Manager\User\TenantController;
 use App\Http\Controllers\Manager\User\UserController;
-use Illuminate\Foundation\Application;
+use App\Http\Controllers\Tenant\ProfileController as TenantProfileController;
+use App\Http\Controllers\Manager\ProfileController as ManagerProfileController;
+use App\Http\Controllers\Operator\ProfileController as OperatorProfileController;
+
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -29,6 +33,10 @@ Route::get('/', function () {
 // Manager routes
 Route::middleware(['auth', 'verified', 'role:manager'])->prefix('manager')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'manager'])->name('manager.dashboard');
+
+    // profile
+    Route::get('/profile', [ManagerProfileController::class, 'edit'])->name('manager.profile.edit');
+    Route::put('/profile', [ManagerProfileController::class, 'update'])->name('manager.profile.update');
 
     // Room management
     Route::prefix('room')->group(function () {
@@ -73,7 +81,7 @@ Route::middleware(['auth', 'verified', 'role:manager'])->prefix('manager')->grou
         Route::post('/{id}/return-deposit', [RecordController::class, 'returnDeposit'])->name('manager.rental.record.return-deposit');
 
         // payment
-        Route::post('/payment/{id}/mark-as-paid', [RentalPaymentController::class, 'markAsPaid'])->name('manager.rental.payment.mark-as-paid');
+        Route::post('/payment/{id}/mark-as-paid', [ManagerRentalPaymentController::class, 'markAsPaid'])->name('manager.rental.payment.mark-as-paid');
     });
 
     // User Management
@@ -107,15 +115,29 @@ Route::middleware(['auth', 'verified', 'role:manager'])->prefix('manager')->grou
 
 });
 
+// Tenant routes
+Route::middleware(['auth', 'verified', 'role:tenant'])->prefix('tenant')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'tenant'])->name('tenant.dashboard');
+
+    // profile 
+    Route::get('/profile', [TenantProfileController::class, 'edit'])->name('tenant.profile.edit');
+    Route::put('/profile', [TenantProfileController::class, 'update'])->name('tenant.profile.update');
+
+    // rental and rental payment
+    Route::get('/rental', [TenantRentalRecordController::class, 'index'])->name('tenant.rental.index');
+    Route::get('/rental/{id}', [TenantRentalRecordController::class, 'show'])->name('tenant.rental.show');
+    Route::get('/rental/payment/{paymentId}', [TenantRentalPaymentController::class, 'show'])->name('tenant.rental.payment.show');
+    Route::post('/rental/payment/{paymentId}/cash', [TenantRentalPaymentController::class, 'cashPayment'])->name('tenant.rental.payment.cash');
+
+});
 
 // Operator routes
 Route::middleware(['auth', 'verified', 'role:operator'])->prefix('operator')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'operator'])->name('operator.dashboard');
-});
 
-// Tenant routes
-Route::middleware(['auth', 'verified', 'role:tenant'])->prefix('tenant')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'tenant'])->name('tenant.dashboard');
+    // profile
+    Route::get('/profile', [OperatorProfileController::class, 'edit'])->name('operator.profile.edit');
+    Route::put('/profile', [OperatorProfileController::class, 'update'])->name('operator.profile.update');
 });
 
 // Default dashboard (untuk redirect berdasarkan role)

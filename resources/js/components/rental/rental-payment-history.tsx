@@ -1,5 +1,3 @@
-// resources/js/components/ui/rental-payment-history.tsx
-
 import {
     AlertDialog,
     AlertDialogAction,
@@ -10,7 +8,6 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -19,7 +16,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { User } from '@/types';
 import { Rental } from '@/types/rental';
-import { formatCurrency } from '@/utils/format';
+import { getPaymentStatusBadge, getRemainingTOPBadge } from '@/utils/badges';
+import { formatCurrency, formatDate } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import { CreditCard, ImageIcon, RotateCcw, Upload, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -41,8 +39,6 @@ export default function RentalPaymentHistory({ rental, paymentStatus, tenant }: 
     const [proofImagePreview, setProofImagePreview] = useState<string>('');
     const [validationErrors, setValidationErrors] = useState<{ [key: string]: string[] }>({});
 
-    console.log('payment status:', paymentStatus);
-
     // Set default date to today when dialog opens
     useEffect(() => {
         if (selectedPaymentId) {
@@ -61,21 +57,6 @@ export default function RentalPaymentHistory({ rental, paymentStatus, tenant }: 
         }
     }, [showReturnDepositDialog]);
 
-    // Fixed format date function to handle null/empty dates
-    const formatDate = (dateString: string | null | undefined) => {
-        if (!dateString) return '-';
-
-        const date = new Date(dateString);
-        // Check if date is valid
-        if (isNaN(date.getTime())) return '-';
-
-        return date.toLocaleDateString('en-US', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-        });
-    };
-
     // Function to format underscore fields to proper labels
     const formatLabel = (text: string) => {
         return text
@@ -92,21 +73,6 @@ export default function RentalPaymentHistory({ rental, paymentStatus, tenant }: 
     // Function to format payment method
     const formatPaymentMethod = (method: string) => {
         return formatLabel(method);
-    };
-
-    // Simplified badge function
-    const getStatusBadge = (status: string) => {
-        const normalizedStatus = status?.toLowerCase();
-
-        if (normalizedStatus === 'paid') {
-            return <Badge variant="success">{status}</Badge>;
-        } else if (normalizedStatus === 'unpaid') {
-            return <Badge variant="error">{status}</Badge>;
-        } else if (normalizedStatus === 'pending') {
-            return <Badge variant="warning">{status}</Badge>;
-        }
-
-        return <Badge variant="secondary">{status}</Badge>;
     };
 
     // Handle image upload for proof
@@ -265,7 +231,7 @@ export default function RentalPaymentHistory({ rental, paymentStatus, tenant }: 
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <div>
-                            <CardTitle>Payment History</CardTitle>
+                            <CardTitle>Payment Bills</CardTitle>
                             <CardDescription>All payments made for this rental</CardDescription>
                         </div>
                         {paymentStatus?.toLowerCase() === 'paid' && !rental.is_deposit_returned && (
@@ -283,7 +249,9 @@ export default function RentalPaymentHistory({ rental, paymentStatus, tenant }: 
                                 <TableRow>
                                     <TableHead>Category</TableHead>
                                     <TableHead>Billing Date</TableHead>
+                                    <TableHead>Due Date</TableHead>
                                     <TableHead>Amount</TableHead>
+                                    <TableHead className="md:table-cell">Remaining TOP</TableHead>
                                     <TableHead className="sm:table-cell">Status</TableHead>
                                     <TableHead className="md:table-cell">Method</TableHead>
                                     <TableHead className="md:table-cell">Paid At</TableHead>
@@ -302,8 +270,12 @@ export default function RentalPaymentHistory({ rental, paymentStatus, tenant }: 
                                         <TableRow key={payment.id}>
                                             <TableCell className="font-medium">{formatCategory(payment.category || '-')}</TableCell>
                                             <TableCell>{formatDate(payment.billing_date)}</TableCell>
+                                            <TableCell>{formatDate(payment.due_date)}</TableCell>
                                             <TableCell className="font-semibold">{formatCurrency(payment.amount)}</TableCell>
-                                            <TableCell>{getStatusBadge(payment.payment_status)}</TableCell>
+                                            <TableCell className="md:table-cell">
+                                                {getRemainingTOPBadge(payment.billing_date, payment.due_date, payment.payment_status)}
+                                            </TableCell>
+                                            <TableCell>{getPaymentStatusBadge(payment.payment_status)}</TableCell>
                                             <TableCell>{formatPaymentMethod(payment.payment_method || '-')}</TableCell>
                                             <TableCell>{formatDate(payment.paid_at)}</TableCell>
                                             <TableCell>
@@ -340,7 +312,7 @@ export default function RentalPaymentHistory({ rental, paymentStatus, tenant }: 
 
             {/* Alert Dialog for Mark as Paid */}
             <AlertDialog open={!!selectedPaymentId} onOpenChange={handleDialogClose}>
-                <AlertDialogContent>
+                <AlertDialogContent className="max-w-2xl">
                     <AlertDialogHeader>
                         <AlertDialogTitle>Mark Payment as Paid</AlertDialogTitle>
                         <AlertDialogDescription>
@@ -349,6 +321,20 @@ export default function RentalPaymentHistory({ rental, paymentStatus, tenant }: 
                     </AlertDialogHeader>
 
                     <div className="grid gap-4 py-4">
+                        {/* Payment Proof Image */}
+                        {selectedPaymentId && rental.rental_payments.find((p) => p.id === selectedPaymentId)?.payment_proof && (
+                            <div className="space-y-2">
+                                <Label>Payment Proof</Label>
+                                <div className="flex justify-center">
+                                    <img
+                                        src={`/storage/${rental.rental_payments.find((p) => p.id === selectedPaymentId)?.payment_proof}`}
+                                        alt="Payment proof"
+                                        className="max-h-80 max-w-full rounded-lg border object-contain"
+                                    />
+                                </div>
+                            </div>
+                        )}
+
                         <div className="space-y-2">
                             <Label htmlFor="paid_at">Paid At</Label>
                             <Input
@@ -375,6 +361,7 @@ export default function RentalPaymentHistory({ rental, paymentStatus, tenant }: 
                 </AlertDialogContent>
             </AlertDialog>
 
+            
             {/* Alert Dialog for Return Deposit */}
             <AlertDialog open={showReturnDepositDialog} onOpenChange={handleReturnDepositDialogClose}>
                 <AlertDialogContent className="max-h-[90vh] w-[90%] !max-w-4xl overflow-y-auto">

@@ -8,7 +8,6 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -18,7 +17,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type PageProps } from '@/types';
 import { Rental } from '@/types/rental';
-import { formatCurrency } from '@/utils/format';
+import { getPaymentTypeBadge, getRentalStatusBadge } from '@/utils/badges';
+import { formatCurrency, formatDate } from '@/utils/format';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight, Edit, Eye, Filter, MoreHorizontal, Plus, Search, Trash2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -44,6 +44,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function RentalRecordList() {
+
+    
     const { rentals, filters } = usePage<RentalRecordPageProps>().props;
     const [search, setSearch] = useState(filters?.search || '');
     const [roomCategoryFilter, setRoomCategoryFilter] = useState(filters?.room_category || '');
@@ -56,8 +58,6 @@ export default function RentalRecordList() {
     const [isDeleting, setIsDeleting] = useState(false);
     const [terminateId, setTerminateId] = useState<number | null>(null);
     const [isTerminating, setIsTerminating] = useState(false);
-    const [occupiedId, setOccupiedId] = useState<number | null>(null);
-    const [isOccupying, setIsOccupying] = useState(false);
 
     // Get unique values for filter dropdowns
     const filterOptions = useMemo(() => {
@@ -225,18 +225,6 @@ export default function RentalRecordList() {
         return buttons;
     }, [currentPage, totalPages]);
 
-    const handleDelete = async (id: number) => {
-        setIsDeleting(true);
-        router.delete(`/manager/rental/${id}`, {
-            onSuccess: () => {
-                setDeleteId(null);
-            },
-            onFinish: () => {
-                setIsDeleting(false);
-            },
-        });
-    };
-
     // Calculate display info
     const fromItem = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
     const toItem = Math.min(currentPage * itemsPerPage, totalItems);
@@ -259,41 +247,16 @@ export default function RentalRecordList() {
         return parts.join(' • ');
     };
 
-    // Format date
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
+    const handleDelete = async (id: number) => {
+        setIsDeleting(true);
+        router.delete(`/manager/rental/${id}`, {
+            onSuccess: () => {
+                setDeleteId(null);
+            },
+            onFinish: () => {
+                setIsDeleting(false);
+            },
         });
-    };
-
-    const getPaymentTypeBadge = (type?: string) => {
-        const normalizedType = type?.toLowerCase();
-
-        if (normalizedType === 'cash') {
-            return <Badge variant="warning">{type}</Badge>;
-        } else if (normalizedType === 'monthly') {
-            return <Badge variant="info">{type}</Badge>;
-        } else if (normalizedType === 'partial') {
-            return <Badge variant="success">{type}</Badge>;
-        }
-
-        return <Badge variant="error">{type}</Badge>;
-    };
-
-    const getRentalStatusBadge = (status?: string) => {
-        const normalizedStatus = status?.toLowerCase();
-
-        if (normalizedStatus === 'booked') {
-            return <Badge variant="warning">{status}</Badge>;
-        } else if (normalizedStatus === 'occupied') {
-            return <Badge variant="info">{status}</Badge>;
-        } else if (normalizedStatus === 'completed') {
-            return <Badge variant="success">{status}</Badge>;
-        }
-
-        return <Badge variant="error">{status}</Badge>;
     };
 
     const handleTerminate = async (id: number) => {
@@ -307,22 +270,6 @@ export default function RentalRecordList() {
                 },
                 onFinish: () => {
                     setIsTerminating(false);
-                },
-            },
-        );
-    };
-
-    const handleSetOccupied = async (id: number) => {
-        setIsOccupying(true);
-        router.post(
-            `/manager/rental/${id}/set-occupied`,
-            {},
-            {
-                onSuccess: () => {
-                    setOccupiedId(null);
-                },
-                onFinish: () => {
-                    setIsOccupying(false);
                 },
             },
         );
@@ -578,7 +525,7 @@ export default function RentalRecordList() {
                                                                     className="text-orange-600"
                                                                     onClick={() => setTerminateId(rental.id)}
                                                                 >
-                                                                    <X className="mr-2 h-4 w-4 text-orange-600" />
+                                                                    <X className="mr-2 h-4 w-4 text-red-600" />
                                                                     Terminate
                                                                 </DropdownMenuItem>
                                                             )}
@@ -693,28 +640,6 @@ export default function RentalRecordList() {
                             className="bg-orange-600 hover:bg-orange-700"
                         >
                             {isTerminating ? 'Terminating...' : 'Terminate'}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-
-            {/* Set Occupied Confirmation Dialog */}
-            <AlertDialog open={!!occupiedId} onOpenChange={() => setOccupiedId(null)}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Set Rental as Occupied?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            This will mark the rental as <strong>occupied</strong>. The tenant will now be considered as officially moved in.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={() => occupiedId && handleSetOccupied(occupiedId)}
-                            disabled={isOccupying}
-                            className="bg-blue-600 hover:bg-blue-700"
-                        >
-                            {isOccupying ? 'Processing...' : 'Set as Occupied'}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

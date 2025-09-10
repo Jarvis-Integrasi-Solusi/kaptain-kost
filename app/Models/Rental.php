@@ -30,20 +30,16 @@ class Rental extends Model
         $bookingFee = $this->bookingFee;
         
         $entryDate = Carbon::parse($this->entry_date);
+        $dueDate = $entryDate->copy();
+        $billingDate = $dueDate->copy()->subDay(7); // 7 days before entry date
+
         $payments = [];
 
-        Log::info("🔹 Start creating payments", [
-            'rental_id' => $this->id,
-            'payment_type' => $paymentType->name,
-            'entry_date' => $entryDate->toDateString(),
-        ]);
-
-
-        // Booking Fee Payment Schedule if Exist
         if ($bookingFee) {
             $payments[] = [
                 'rental_id' => $this->id,
-                'billing_date' => $entryDate->toDateString(),
+                'billing_date' => $billingDate->toDateString(),
+                'due_date' => $dueDate->toDateString(),
                 'amount' => $bookingFee->amount,
                 'category' => 'booking_fee',
                 'payment_status' => 'unpaid',
@@ -52,9 +48,6 @@ class Rental extends Model
                 'created_at' => now(),
                 'updated_at' => now()
             ];
-            Log::info("✅ Booking fee added", [
-                'amount' => $bookingFee->amount,
-            ]);
         }
 
         // Calculate
@@ -64,12 +57,6 @@ class Rental extends Model
         $depositFee = $roomCategory->deposit_fee;
         $netRentalCost = $totalRentalCost - $bookingFeeAmount + $depositFee;
 
-        Log::info("💰 Rental calculation", [
-            'months' => $rentalMonths,
-            'total_rental_cost' => $totalRentalCost,
-            'booking_fee' => $bookingFeeAmount,
-            'net_rental_cost' => $netRentalCost,
-        ]);
 
         // 2. Payment Type Handling
         if ($paymentType->name === 'Cash') {
@@ -83,10 +70,6 @@ class Rental extends Model
         // Insert
         if (!empty($payments)) {
             DB::table('rental_payments')->insert($payments);
-            Log::info("🎉 Inserted payment records", [
-                'rental_id' => $this->id,
-                'count' => count($payments)
-            ]);
         }
     }
 
@@ -94,10 +77,16 @@ class Rental extends Model
     {
         $payments = [];
 
+
         if ($this->is_down_payment_paid_full) {
+            
+            $dueDate = $entryDate->copy();
+            $billingDate = $dueDate->copy()->subDay(7); // 7 days before entry date
+
             $payments[] = [
                 'rental_id' => $this->id,
-                'billing_date' => $entryDate->toDateString(),
+                'billing_date' => $billingDate->toDateString(),
+                'due_date' => $dueDate->toDateString(),
                 'amount' => $netRentalCost,
                 'category' => 'down_payment_fee',
                 'payment_status' => 'unpaid',
@@ -106,14 +95,17 @@ class Rental extends Model
                 'created_at' => now(),
                 'updated_at' => now()
             ];
-            Log::info("💳 Cash full DP created", ['amount' => $netRentalCost]);
         } else {
             $downPaymentAmount = $netRentalCost * 0.5;
             $remainingAmount = $netRentalCost * 0.5;
 
+            $dueDate = $entryDate->copy();
+            $billingDate = $dueDate->copy()->subDay(7); 
+
             $payments[] = [
                 'rental_id' => $this->id,
-                'billing_date' => $entryDate->toDateString(),
+                'billing_date' => $billingDate->toDateString(),
+                'due_date' => $dueDate->toDateString(),
                 'amount' => $downPaymentAmount,
                 'category' => 'down_payment_fee',
                 'payment_status' => 'unpaid',
@@ -122,11 +114,10 @@ class Rental extends Model
                 'created_at' => now(),
                 'updated_at' => now()
             ];
-            Log::info("💳 Cash DP 50% created", ['amount' => $downPaymentAmount]);
-
             $payments[] = [
                 'rental_id' => $this->id,
-                'billing_date' => $entryDate->copy()->addMonth()->toDateString(),
+                'billing_date' => $billingDate->addMonth()->toDateString(),
+                'due_date' => $dueDate->addDays(14)->toDateString(),
                 'amount' => $remainingAmount,
                 'category' => 'rental_fee',
                 'payment_status' => 'unpaid',
@@ -135,7 +126,6 @@ class Rental extends Model
                 'created_at' => now(),
                 'updated_at' => now()
             ];
-            Log::info("💳 Cash remaining 50% created", ['amount' => $remainingAmount]);
         }
 
         return $payments;
@@ -145,11 +135,17 @@ class Rental extends Model
     {
         $payments = [];
 
+        $rentalPeriod = $this->rentalPeriod; 
+
+        // 50% DP awal
         $downPaymentAmount = $netRentalCost * 0.5;
+        $dueDate = $entryDate->copy();
+        $billingDate = $dueDate->copy()->subDays(7);
 
         $payments[] = [
             'rental_id' => $this->id,
-            'billing_date' => $entryDate->toDateString(),
+            'billing_date' => $billingDate->toDateString(),
+            'due_date' => $dueDate->toDateString(),
             'amount' => $downPaymentAmount,
             'category' => 'down_payment_fee',
             'payment_status' => 'unpaid',
@@ -160,14 +156,29 @@ class Rental extends Model
         ];
         Log::info("💳 Partial DP 50% created", ['amount' => $downPaymentAmount]);
 
+        // sisanya: 20% + 20% + 10%
         $partialPercentages = [20.00, 20.00, 10.00];
         for ($i = 0; $i < 3; $i++) {
             $amount = $netRentalCost * ($partialPercentages[$i] / 100);
-            $billingDate = $entryDate->copy()->addMonths($i + 1);
+
+            // default jatuh tempo = addMonths
+            if ($rentalPeriod->month == 1) {
+                // jika 1 bulan → +7 hari tiap termin
+                $dueDate = $entryDate->copy()->addDays(7 * ($i + 1));
+            } elseif ($rentalPeriod->month == 3) {
+                // jika 3 bulan → +20 hari tiap termin
+                $dueDate = $entryDate->copy()->addDays(20 * ($i + 1));
+            } else {
+                // default tetap per bulan
+                $dueDate = $entryDate->copy()->addMonths($i + 1);
+            }
+
+            $billingDate = $dueDate->copy()->subDays(7);
 
             $payments[] = [
                 'rental_id' => $this->id,
                 'billing_date' => $billingDate->toDateString(),
+                'due_date' => $dueDate->toDateString(),
                 'amount' => $amount,
                 'category' => 'rental_fee',
                 'payment_status' => 'unpaid',
@@ -176,33 +187,31 @@ class Rental extends Model
                 'created_at' => now(),
                 'updated_at' => now()
             ];
-            Log::info("💳 Partial rental fee created", [
-                'month' => $i + 1,
-                'amount' => $amount,
-                'percentage' => $partialPercentages[$i]
-            ]);
         }
 
         return $payments;
     }
 
-    private function createMonthlyPayments($entryDate, $roomCategory, $rentalMonths)
+    private function createMonthlyPayments($entryDate, $roomCategory, $rentalMonths, $depositFee)
     {
         $payments = [];
         $bookingFeePerMonth = $this->bookingFee ? $this->bookingFee->amount / $rentalMonths : 0;
         $monthlyAmount = $roomCategory->monthly_rental_fee + $roomCategory->management_fee;
 
-        $deposit = $roomCategory->deposit_fee ?? 0;
-        $depositPerMonth = $deposit > 0 && $rentalMonths > 0 ? $deposit / $rentalMonths : 0;
+        $depositPerMonth = $depositFee > 0 && $rentalMonths > 0 ? $depositFee / $rentalMonths : 0;
 
-        $currentBillingDate = $entryDate->copy();
+        $currentDueDate = $entryDate->copy();
 
         for ($i = 0; $i < $rentalMonths; $i++) {
+            $dueDate = $currentDueDate->copy();
+            $billingDate = $dueDate->copy()->subDays(7);
+
             $amount = ceil($monthlyAmount + $depositPerMonth - $bookingFeePerMonth);
             
             $payments[] = [
                 'rental_id' => $this->id,
-                'billing_date' => $currentBillingDate->toDateString(),
+                'billing_date' => $billingDate->toDateString(),
+                'due_date' => $dueDate->toDateString(),
                 'amount' => $amount,
                 'category' => 'rental_fee',
                 'payment_status' => 'unpaid',
@@ -211,14 +220,8 @@ class Rental extends Model
                 'created_at' => now(),
                 'updated_at' => now()
             ];
-
-            Log::info("📆 Monthly rental fee created", [
-                'month' => $i + 1,
-                'date' => $currentBillingDate->toDateString(),
-                'amount' => $amount
-            ]);
-
-            $currentBillingDate->addMonth();
+            
+            $currentDueDate->addMonth();
         }
 
         return $payments;
@@ -229,7 +232,6 @@ class Rental extends Model
     {
         return $this->belongsTo(Company::class);
     }
-
 
 
     public function user()

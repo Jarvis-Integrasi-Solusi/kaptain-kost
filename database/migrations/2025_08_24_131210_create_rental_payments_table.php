@@ -15,13 +15,13 @@ return new class extends Migration
             $table->id();
             $table->foreignId('rental_id')->nullable()->constrained('rentals')->onDelete('set null');
             $table->date('billing_date');
+            $table->date('due_date');
             $table->date('paid_at')->nullable();
             $table->integer('amount');
             $table->enum('category', ['rental_fee', 'down_payment_fee', 'booking_fee']);
-            $table->enum('payment_status', ['paid', 'unpaid']);
+            $table->enum('payment_status', ['paid', 'unpaid', 'pending'])->default('unpaid');
             $table->enum('payment_method', ['cash', 'payment_gateway'])->nullable();
             $table->string('payment_proof')->nullable();
-            $table->boolean('is_deposit_refunded')->default(false);
             $table->timestamps();
         });
     }

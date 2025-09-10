@@ -15,8 +15,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('tenant_service_id')->nullable()->constrained('tenant_services')->onDelete('cascade');
             $table->integer('amount');
+            $table->date('billing_date');
+            $table->date('due_date');
             $table->date('paid_at')->nullable();
-            $table->enum('payment_status', ['paid', 'in_progress', 'unpaid']);
+            $table->enum('payment_status', ['paid', 'pending', 'unpaid']);
             $table->timestamps();
         });
     }
