@@ -14,7 +14,7 @@ use App\Http\Controllers\Manager\Room\RoomController;
 use App\Http\Controllers\Manager\User\ManagerController;
 use App\Http\Controllers\Manager\User\TenantController;
 use App\Http\Controllers\Manager\User\UserController;
-use Illuminate\Foundation\Application;
+use App\Http\Controllers\Tenant\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -112,11 +112,17 @@ Route::middleware(['auth', 'verified', 'role:manager'])->prefix('manager')->grou
 Route::middleware(['auth', 'verified', 'role:tenant'])->prefix('tenant')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'tenant'])->name('tenant.dashboard');
 
+    // profile 
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('tenant.profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('tenant.profile.update');
+
+    // rental and rental payment
     Route::get('/rental', [TenantRentalRecordController::class, 'index'])->name('tenant.rental.index');
     Route::get('/rental/{id}', [TenantRentalRecordController::class, 'show'])->name('tenant.rental.show');
-
     Route::get('/rental/payment/{paymentId}', [TenantRentalPaymentController::class, 'show'])->name('tenant.rental.payment.show');
     Route::post('/rental/payment/{paymentId}/cash', [TenantRentalPaymentController::class, 'cashPayment'])->name('tenant.rental.payment.cash');
+
+
 
 });
 

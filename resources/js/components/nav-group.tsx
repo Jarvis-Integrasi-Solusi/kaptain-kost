@@ -137,10 +137,10 @@ export const tenantNavGroups: NavGroup[] = [
     //     ],
     // },
     {
-        title: 'Rental Information',
+        title: 'Resource',
         items: [
             {
-                title: 'Rooms',
+                title: 'Rental',
                 href: '/tenant/rental',
                 icon: BedSingle,
             },

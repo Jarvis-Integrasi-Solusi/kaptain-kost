@@ -7,23 +7,10 @@ import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
-import { type BreadcrumbItem, type PageProps } from '@/types';
+import { User, type BreadcrumbItem, type PageProps } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { Save, Upload, X } from 'lucide-react';
 import { type ChangeEvent, useEffect, useState } from 'react';
-
-interface User {
-    id: number;
-    name: string;
-    email: string;
-    username: string;
-    telephone: string;
-    gender: string;
-    address: string;
-    guardian_name: string;
-    guardian_telephone: string;
-    image: string;
-}
 
 interface TenantEditPageProps extends PageProps {
     tenant: User;

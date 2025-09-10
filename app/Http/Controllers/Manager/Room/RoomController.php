@@ -321,6 +321,8 @@ class RoomController extends Controller
                     if (Storage::disk('public')->exists($deletedImage->image)) {
                         Storage::disk('public')->delete($deletedImage->image);
                     }
+
+                    
                     // Delete from database
                     $deletedImage->delete();
                 }

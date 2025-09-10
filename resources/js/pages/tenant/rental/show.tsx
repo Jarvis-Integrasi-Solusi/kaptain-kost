@@ -13,7 +13,7 @@ import { getPaymentStatusBadge, getRemainingTOPBadge, getRentalStatusBadge } fro
 import { formatCurrency, formatDate } from '@/utils/format';
 import { getPaymentCategory } from '@/utils/type';
 import { Head, router, usePage } from '@inertiajs/react';
-import { CreditCard, FileImage, ImageIcon, MapPin } from 'lucide-react';
+import { CreditCard, FileImage, ImageIcon, LayoutList } from 'lucide-react';
 import { useMemo } from 'react';
 
 interface TenantRentalShowProps extends PageProps {
@@ -122,10 +122,10 @@ export default function TenantRentalShow() {
                     <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/60 to-transparent p-6 text-white">
                         <div className="flex items-end justify-between">
                             <div>
-                                <h1 className="text-2xl font-bold sm:text-3xl">{rental.room.name}</h1>
-                                <div className="mt-2 flex items-center gap-2">
-                                    <MapPin className="h-4 w-4" />
-                                    <span>{rental.room.room_category.name}</span>
+                                <h1 className="text-xl font-bold sm:text-3xl">{rental.room.name}</h1>
+                                <div className="mt-2 flex items-center gap-1 md:gap-2">
+                                    <LayoutList className="h-3 w-3 md:h-4 md:w-4" />
+                                    <span className="text-xs md:text-sm">{rental.room.room_category.name}</span>
                                 </div>
                             </div>
                             <div className="text-black">{getRentalStatusBadge(rental.status)}</div>
@@ -254,8 +254,10 @@ export default function TenantRentalShow() {
                                     <>
                                         <Separator />
                                         <div>
-                                            <h4 className="mb-2 text-sm font-medium text-green-700 dark:text-green-400">Deposit Returned</h4>
-                                            <div className="flex items-center justify-between text-sm">
+                                            <h4 className="mb-2 text-xs font-medium text-green-700 md:text-sm dark:text-green-400">
+                                                Deposit Returned
+                                            </h4>
+                                            <div className="flex items-center justify-between text-xs md:text-sm">
                                                 <span className="text-gray-600 dark:text-gray-400">Return Date</span>
                                                 <span className="font-medium">{formatDate(rental.deposit_return.returned_at)}</span>
                                             </div>
@@ -270,7 +272,7 @@ export default function TenantRentalShow() {
                                                         </DialogTrigger>
                                                         <DialogContent className="max-w-2xl">
                                                             <DialogHeader>
-                                                                <DialogTitle>Proof of Deposit Return</DialogTitle>
+                                                                <DialogTitle className="text-xs md:text-sm">Proof of Deposit Return</DialogTitle>
                                                             </DialogHeader>
                                                             <div className="flex justify-center">
                                                                 <img
