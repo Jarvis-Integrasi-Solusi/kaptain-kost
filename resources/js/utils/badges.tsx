@@ -51,46 +51,52 @@ export const getPaymentStatusBadge = (status: string) => {
     } else if (normalizedStatus === 'unpaid') {
         return <Badge variant="error">{status}</Badge>;
     } else if (normalizedStatus === 'pending') {
-        return <Badge variant="warning">{status}</Badge>;
+        return <Badge variant="warning">pending approval</Badge>;
     }
 
     return <Badge variant="secondary">{status}</Badge>;
 };
 
-export const getRemainingTOPBadge = (billingDate: string, dueDate: string, paymentStatus?: string) => {
-    if (paymentStatus?.toLowerCase() === 'paid') {
-        return '-';
-    }
+export const getRemainingTOPBadge = (
+  billingDate: string,
+  dueDate: string,
+  paymentStatus?: string
+) => {
+  if (paymentStatus?.toLowerCase() === 'paid') {
+    return '-';
+  }
 
-    const now = dayjs();
-    const billing = dayjs(billingDate);
-    const due = dayjs(dueDate);
+  const now = dayjs();
+  const billing = dayjs(billingDate);
+  const due = dayjs(dueDate);
 
-    let variant: 'info' | 'success' | 'warning' | 'error' | 'secondary' = 'secondary';
-    let text = '';
+  if (now.isBefore(billing)) {
+    return '-';
+  }
 
-    const diffMinutes = due.diff(now, 'minute');
-    const diffDays = Math.floor(diffMinutes / (60 * 24));
-    const diffHours = Math.floor((diffMinutes % (60 * 24)) / 60);
+  let variant: 'info' | 'success' | 'warning' | 'error' | 'secondary' = 'secondary';
+  let text = '';
 
-    if (diffMinutes < 0) {
-        // due date overdue = <overdue>
-        text = `${Math.abs(diffDays)} days overdue`;
-    } else if (diffDays > 0) {
-        // days remaining = <days
-        text = `${diffDays} days`;
-    } else {
-        // hours remaining = <hours>
-        text = `${diffHours} hours`;
-    }
+  const diffMinutes = due.diff(now, 'minute');
+  const diffDays = Math.floor(diffMinutes / (60 * 24));
+  const diffHours = Math.floor((diffMinutes % (60 * 24)) / 60);
 
-    if (now.isBefore(billing)) {
-        variant = 'info'
-    } else if (now.isSame(billing, 'day') || (now.isAfter(billing) && now.isBefore(due))) {
-        variant = diffDays <= 3 ? 'warning' : 'success'; 
-    } else if (now.isSame(due, 'day') || now.isAfter(due)) {
-        variant = 'error'; 
-    }
+  if (diffMinutes < 0) {
+    // due date overdue
+    text = `${Math.abs(diffDays)} days overdue`;
+  } else if (diffDays > 0) {
+    // days remaining
+    text = `${diffDays} days`;
+  } else {
+    // hours remaining
+    text = `${diffHours} hours`;
+  }
 
-    return <Badge variant={variant}>{text}</Badge>;
+  if (now.isSame(billing, 'day') || (now.isAfter(billing) && now.isBefore(due))) {
+    variant = diffDays <= 3 ? 'warning' : 'success';
+  } else if (now.isSame(due, 'day') || now.isAfter(due)) {
+    variant = 'error';
+  }
+
+  return <Badge variant={variant}>{text}</Badge>;
 };

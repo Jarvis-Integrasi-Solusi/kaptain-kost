@@ -18,7 +18,7 @@ import { type BreadcrumbItem, type PageProps } from '@/types';
 import { RentalPayment } from '@/types/rental-payment';
 import { getPaymentStatusBadge, getRemainingTOPBadge } from '@/utils/badges';
 import { formatCurrency, formatDate } from '@/utils/format';
-import { getPaymentCategory } from '@/utils/type';
+import { getPaymentCategory } from '@/utils/typo';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { CreditCard, FileImage, ImageIcon, QrCode, Upload, Wallet, X } from 'lucide-react';
 import { useRef, useState } from 'react';

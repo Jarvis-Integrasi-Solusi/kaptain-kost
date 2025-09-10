@@ -11,7 +11,7 @@ import { Rental } from '@/types/rental';
 import { RentalPayment } from '@/types/rental-payment';
 import { getPaymentStatusBadge, getRemainingTOPBadge, getRentalStatusBadge } from '@/utils/badges';
 import { formatCurrency, formatDate } from '@/utils/format';
-import { getPaymentCategory } from '@/utils/type';
+import { getPaymentCategory } from '@/utils/typo';
 import { Head, router, usePage } from '@inertiajs/react';
 import { CreditCard, FileImage, ImageIcon, LayoutList } from 'lucide-react';
 import { useMemo } from 'react';
@@ -313,7 +313,8 @@ export default function TenantRentalShow() {
                                                         {getPaymentCategory(payment.category)}
                                                     </div>
                                                     <div className="mt-1 text-xs font-medium md:text-sm">
-                                                        top : {getRemainingTOPBadge(payment.billing_date, payment.due_date, payment.payment_status)}
+                                                        Deadline :{' '}
+                                                        {getRemainingTOPBadge(payment.billing_date, payment.due_date, payment.payment_status)}
                                                     </div>
                                                 </div>
                                             </div>

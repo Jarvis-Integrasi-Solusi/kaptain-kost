@@ -95,13 +95,12 @@ class Rental extends Model
                 'created_at' => now(),
                 'updated_at' => now()
             ];
-            Log::info("💳 Cash full DP created", ['amount' => $netRentalCost]);
         } else {
             $downPaymentAmount = $netRentalCost * 0.5;
             $remainingAmount = $netRentalCost * 0.5;
 
             $dueDate = $entryDate->copy();
-            $billingDate = $dueDate->copy()->subDay(7); // 7
+            $billingDate = $dueDate->copy()->subDay(7); 
 
             $payments[] = [
                 'rental_id' => $this->id,
@@ -118,7 +117,7 @@ class Rental extends Model
             $payments[] = [
                 'rental_id' => $this->id,
                 'billing_date' => $billingDate->addMonth()->toDateString(),
-                'due_date' => $dueDate->addMonth()->toDateString(),
+                'due_date' => $dueDate->addDays(14)->toDateString(),
                 'amount' => $remainingAmount,
                 'category' => 'rental_fee',
                 'payment_status' => 'unpaid',
@@ -136,7 +135,9 @@ class Rental extends Model
     {
         $payments = [];
 
-        // 50% DP
+        $rentalPeriod = $this->rentalPeriod; 
+
+        // 50% DP awal
         $downPaymentAmount = $netRentalCost * 0.5;
         $dueDate = $entryDate->copy();
         $billingDate = $dueDate->copy()->subDays(7);
@@ -155,12 +156,23 @@ class Rental extends Model
         ];
         Log::info("💳 Partial DP 50% created", ['amount' => $downPaymentAmount]);
 
-        //  20% + 20% + 10%
+        // sisanya: 20% + 20% + 10%
         $partialPercentages = [20.00, 20.00, 10.00];
         for ($i = 0; $i < 3; $i++) {
             $amount = $netRentalCost * ($partialPercentages[$i] / 100);
-            
-            $dueDate = $entryDate->copy()->addMonths($i + 1);
+
+            // default jatuh tempo = addMonths
+            if ($rentalPeriod->month == 1) {
+                // jika 1 bulan → +7 hari tiap termin
+                $dueDate = $entryDate->copy()->addDays(7 * ($i + 1));
+            } elseif ($rentalPeriod->month == 3) {
+                // jika 3 bulan → +20 hari tiap termin
+                $dueDate = $entryDate->copy()->addDays(20 * ($i + 1));
+            } else {
+                // default tetap per bulan
+                $dueDate = $entryDate->copy()->addMonths($i + 1);
+            }
+
             $billingDate = $dueDate->copy()->subDays(7);
 
             $payments[] = [
